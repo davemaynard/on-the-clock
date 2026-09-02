@@ -1,0 +1,17 @@
+# private: ESPN cookies
+.env
+# your leagues and calls — commit them in your own draft repo, not here
+/leagues.toml
+/marks.toml
+/leagues/
+# fetched data and built boards
+/data/
+/out/
+# python
+.venv/
+__pycache__/
+*.egg-info/
+dist/
+.pytest_cache/
+.ruff_cache/
+.DS_Store

@@ -1,0 +1,204 @@
+{
+ "year": 2026,
+ "leagues": [
+  {
+   "league": {
+    "id": "100001",
+    "settings": {
+     "name": "Sunday Regulars",
+     "size": 12,
+     "rosterSettings": {
+      "lineupSlotCounts": {
+       "0": 1,
+       "2": 2,
+       "4": 2,
+       "6": 1,
+       "23": 2,
+       "16": 1,
+       "17": 1,
+       "20": 6,
+       "21": 1
+      }
+     }
+    },
+    "teams": [
+     {
+      "id": 1,
+      "name": "Backfield Bandits",
+      "abbrev": "BB",
+      "owners": []
+     },
+     {
+      "id": 2,
+      "name": "Red Zone Regulars",
+      "abbrev": "RZR",
+      "owners": []
+     },
+     {
+      "id": 3,
+      "name": "The Waiver Wire",
+      "abbrev": "TWW",
+      "owners": []
+     },
+     {
+      "id": 4,
+      "name": "Fourth and Long",
+      "abbrev": "FAL",
+      "owners": []
+     },
+     {
+      "id": 5,
+      "name": "Garbage Time Heroes",
+      "abbrev": "GTH",
+      "owners": []
+     },
+     {
+      "id": 6,
+      "name": "Bye Week Blues",
+      "abbrev": "BWB",
+      "owners": []
+     },
+     {
+      "id": 7,
+      "name": "Snap Count",
+      "abbrev": "SC",
+      "owners": []
+     },
+     {
+      "id": 8,
+      "name": "Hail Mary Society",
+      "abbrev": "HMS",
+      "owners": []
+     },
+     {
+      "id": 9,
+      "name": "Two-Minute Drill",
+      "abbrev": "TD",
+      "owners": []
+     },
+     {
+      "id": 10,
+      "name": "Play Action",
+      "abbrev": "PA",
+      "owners": []
+     },
+     {
+      "id": 11,
+      "name": "The Bench Mob",
+      "abbrev": "TBM",
+      "owners": []
+     },
+     {
+      "id": 12,
+      "name": "Dink and Dunk",
+      "abbrev": "DAD",
+      "owners": []
+     }
+    ]
+   },
+   "slot": 6,
+   "team": 6,
+   "players": "players-ppr.json"
+  },
+  {
+   "league": {
+    "id": "100002",
+    "settings": {
+     "name": "Superflex Invitational",
+     "size": 12,
+     "rosterSettings": {
+      "lineupSlotCounts": {
+       "0": 1,
+       "2": 2,
+       "4": 2,
+       "6": 1,
+       "23": 1,
+       "7": 1,
+       "16": 1,
+       "17": 1,
+       "20": 7,
+       "21": 1
+      }
+     }
+    },
+    "teams": [
+     {
+      "id": 1,
+      "name": "Superflex Appeal",
+      "abbrev": "SA",
+      "owners": []
+     },
+     {
+      "id": 2,
+      "name": "Quarterback Sneak",
+      "abbrev": "QS",
+      "owners": []
+     },
+     {
+      "id": 3,
+      "name": "Pocket Presence",
+      "abbrev": "PP",
+      "owners": []
+     },
+     {
+      "id": 4,
+      "name": "Screen Pass Syndicate",
+      "abbrev": "SPS",
+      "owners": []
+     },
+     {
+      "id": 5,
+      "name": "Audible",
+      "abbrev": "A",
+      "owners": []
+     },
+     {
+      "id": 6,
+      "name": "Empty Backfield",
+      "abbrev": "EB",
+      "owners": []
+     },
+     {
+      "id": 7,
+      "name": "The Hard Count",
+      "abbrev": "THC",
+      "owners": []
+     },
+     {
+      "id": 8,
+      "name": "Trips Right",
+      "abbrev": "TR",
+      "owners": []
+     },
+     {
+      "id": 9,
+      "name": "Shotgun Formation",
+      "abbrev": "SF",
+      "owners": []
+     },
+     {
+      "id": 10,
+      "name": "Checkdown Charlie",
+      "abbrev": "CC",
+      "owners": []
+     },
+     {
+      "id": 11,
+      "name": "Broken Play",
+      "abbrev": "BP",
+      "owners": []
+     },
+     {
+      "id": 12,
+      "name": "Victory Formation",
+      "abbrev": "VF",
+      "owners": []
+     }
+    ]
+   },
+   "slot": 1,
+   "team": 1,
+   "players": "players-superflex.json"
+  }
+ ]
+}

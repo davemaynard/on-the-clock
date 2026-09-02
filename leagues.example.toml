@@ -1,0 +1,10 @@
+# Copy to leagues.toml. One [[league]] per draft you're in.
+# Only the slot is typed — team count, rounds, and which team is yours come from ESPN.
+
+[[league]]
+id = "123456"   # the leagueId in your ESPN league URL
+slot = 6        # your draft slot; leave out until the order is published
+
+[[league]]
+id = "654321"
+# team = 3      # optional: your teamId, for a public league where there's no SWID to match

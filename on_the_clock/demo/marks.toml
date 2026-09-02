@@ -1,0 +1,53 @@
+# The demo's marks layer — the same shape as marks.example.toml, applied to the
+# two invented leagues. Player-specific text is illustrative: it shows what each
+# chip looks like on the board, it is not draft advice.
+
+[alerts]
+"Josh Jacobs" = "Demo news chip: listed day-to-day on the snapshot; the projection hasn't moved."
+
+[reprice."Zach Charbonnet"]
+factor = 0.6
+verdict = "STASH 160+"
+
+[leagues.100001]
+principles = [
+  "Twelve teams, two flex: replacement is thin at RB — the fourth-round RB is the last one you'll like.",
+  "TE is two players deep then a cliff; take McBride/Bowers at price or wait until round 9.",
+  "One QB, no superflex: the QB10 projects within 40 points of QB1 — let the room overpay.",
+]
+script = [
+  ["1", 6, "Best RB standing. If the top three are gone, the WR1 tier is deeper than the room thinks."],
+  ["2", 19, "The position you didn't take in round 1."],
+  ["3", 30, "Third RB/WR — this is the last round the board still shows a real VOR gap."],
+  ["5", 54, "QB only if Allen or Jackson slides here; otherwise round 8+."],
+]
+
+[leagues.100001.targets]
+"Chase Brown" = "Priced with the RB2s, projects with the RB1s — the ADP spread says he lasts to the turn"
+"George Pickens" = "Board VOR says WR1-tier volume at a WR2 price"
+"Harold Fannin Jr." = "TE3 by projection at a round-7 price; the TE cliff makes this the value"
+
+[leagues.100001.fades]
+"Derrick Henry" = "Fine player, wrong price for this room — VOR at his ADP is below the RBs two rounds later"
+"Dak Prescott" = "QB6 by ADP, QB11 by VOR; free QB later"
+
+[leagues.100001.sleepers]
+"Isiah Pacheco" = "On IR in the snapshot — a late pick for the IR slot, not the bench"
+
+[leagues.100002]
+principles = [
+  "Superflex: a second QB starts every week, so QB replacement drops to QB24 — the whole QB tier moves up two rounds.",
+  "From slot 1 you pick at the turns; plan pairs, not singles.",
+]
+script = [
+  ["1", 1, "Gibbs. Then don't look at the board until pick 24."],
+  ["2", 24, "QB1 tier if Allen/Jackson are here; otherwise the best of RB/WR and take two QBs in rounds 3–4."],
+  ["4", 48, "Second QB at the latest — the board's cost-of-waiting column goes red after this."],
+]
+
+[leagues.100002.targets]
+"Josh Allen" = "In superflex his VOR is the best on the board after pick 3"
+"Jaxson Dart" = "A starting QB at a round-7 price is the cheapest QB2 in the room"
+
+[leagues.100002.fades]
+"Trey McBride" = "TE at pick 24 in superflex costs a QB2; the roster math says no"

@@ -1,0 +1,35 @@
+# Copy to marks.toml. Your own calls, layered on the computed board — all optional.
+# Names are matched suffix-tolerantly ("Jr.", "III" don't matter).
+
+# News the projections haven't priced — global, every league.
+[alerts]
+"Some Running Back" = "Exempt list 8/30, no timetable. Board still prices him RB16."
+
+# Scale a projection before VOR is computed. verdict is the chip text.
+[reprice."Some Running Back"]
+factor = 0.65
+verdict = "AVOID"
+
+[reprice."Some Tight End"]
+factor = 0.6
+verdict = "STASH 160+"
+
+# Per league, keyed by ESPN league id.
+[leagues.123456]
+principles = [
+  "Ten teams means replacement is fat — RB/WR through round 8; QB and TE come free later.",
+]
+# [round, overall pick, what to do there]
+script = [
+  ["1", 6, "Best RB standing; if the top three are gone, the WR1 tier is deeper than the room thinks."],
+  ["2", 15, "The position you didn't take in round 1."],
+]
+
+[leagues.123456.targets]
+"Some Wide Receiver" = "49% of his team's targets vacated; priced two rounds late"
+
+[leagues.123456.fades]
+"Some Quarterback" = "QB3 by projection, but QB10 projects within 40 points — free later"
+
+[leagues.123456.sleepers]
+"Some Tight End" = "TE1 when back — the missed games are already in the projection. Late pick, IR slot."
