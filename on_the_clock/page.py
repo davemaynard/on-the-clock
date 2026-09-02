@@ -16,7 +16,7 @@ from datetime import date
 from pathlib import Path
 
 from . import board as bb
-from . import config
+from . import config, images
 from . import marks as st
 from . import plan as dp
 
@@ -240,7 +240,7 @@ def render_league(d: dict, idx: int) -> str:
             text = pl["why"]
             why = f'<small class="rw-why">{esc(text)}</small>'
         if pl["vor"] is None:
-            vor = '<span class="rw-vor dim">—</span>'
+            vor = '<span class="rw-vor dim">&ndash;</span>'
         else:
             # One number: the current, news-adjusted value. The pre-news figure
             # beside it cost a third of the row's width to say what the chip and
@@ -250,7 +250,8 @@ def render_league(d: dict, idx: int) -> str:
             f'<li class="row{" is-streamer" if pl["pos"] in bb.STREAMED else ""}" data-i="{i}">'
             f'<button class="mine-btn" type="button" aria-label="Mark {esc(pl["name"])} as mine">'
             "+</button>"
-            f'<span class="rw-name"><span class="rw-nm">{esc(pl["name"])}</span>'
+            f'<span class="rw-name"><i class="tm tm-{esc(pl["team"])}" aria-hidden="true"></i>'
+            f'<span class="rw-nm">{esc(pl["name"])}</span>'
             f"{flag}</span>"
             f'<span class="rw-pos">{esc(pl["pos"])}{pl["pos_rank"]}</span>'
             f'<span class="rw-team">{esc(pl["team"])}</span>'
@@ -284,16 +285,16 @@ def render_league(d: dict, idx: int) -> str:
         )
         plan = f"""
   <details class="plan">
-    <summary>The plan &mdash; thesis &amp; pick script</summary>
+    <summary>The plan: thesis and pick script</summary>
     <ul class="plan-prin">{prins}</ul>
     <ol class="plan-script">{script}</ol>
     <p class="plan-note">On the board below: <span class="tag mk-target">target</span>
     take at price &middot; <span class="tag mk-fade">fade</span> not at that price &middot;
     <span class="tag mk-alert">news</span> this week's news, not yet in ESPN's number &middot;
-    <span class="tag mk-avoid">avoid</span> repriced &mdash; do not draft &middot;
-    <span class="tag mk-stash">stash 160+</span> repriced &mdash; only at the stated
+    <span class="tag mk-avoid">avoid</span> repriced, do not draft &middot;
+    <span class="tag mk-stash">stash 160+</span> repriced, only at the stated
     price or pick &middot;
-    <span class="tag mk-slp">slp</span> hurt sleeper &mdash; Out today, still worth a late
+    <span class="tag mk-slp">slp</span> hurt sleeper: Out today, still worth a late
     pick for the IR slot. A struck number is the pre-news VOR; the real one follows.
     The one-line why sits under each name.</p>
   </details>"""
@@ -301,7 +302,7 @@ def render_league(d: dict, idx: int) -> str:
         curve_html = f"""
   <h2>What waiting costs</h2>
   <p class="lede">Value of the best player still on the board, by position, at each of your
-  first eight picks &mdash; across 4,000 simulated drafts, before the draft starts. Structural,
+  first eight picks, from 4,000 simulated drafts run before the draft starts. Structural,
   not live: a flat row means waiting is free, a steep one means the tier empties before
   your next turn.</p>
   <div class="scroller">
@@ -313,7 +314,7 @@ def render_league(d: dict, idx: int) -> str:
     else:
         curve_html = """
   <h2>What waiting costs</h2>
-  <p class="lede">Not built yet &mdash; the draft order isn't published. Rebuild this page
+  <p class="lede">Not built yet: the draft order isn't published. Rebuild this page
   once the slot is known for the full pre-draft table; the live tracker above works
   either way, from the slot you set or the one ESPN reveals.</p>"""
     lineup_desc = " &middot; ".join(
@@ -328,11 +329,12 @@ def render_league(d: dict, idx: int) -> str:
         <select class="slot-select" aria-label="Your draft slot">
           <option value="">?</option>{opts}
         </select></label>
-      <p class="slot-note">Order isn't out yet &mdash; set it here the moment ESPN reveals it.
+      <p class="slot-note">Order isn't out yet. Set it here the moment ESPN reveals it.
       Live sync sets it automatically once the order or first picks appear.</p>"""
     active = " is-active" if idx == 0 else ""
     return f"""
 <section class="league{active}" id="lg{idx}" role="tabpanel" aria-labelledby="tab{idx}">
+  <div class="col col-rail">
   <p class="stat-row">
     <span><b>{d["teams"]}</b> teams</span>
     <span>slot <b class="slot-stat">{d["slot"] or "TBD"}</b></span>
@@ -342,11 +344,12 @@ def render_league(d: dict, idx: int) -> str:
   </p>
   {plan}
 
+  <div class="rail-stick">
   <div class="now">
     <div class="now-head">
       <div class="now-id">
         <p class="now-label">Your next pick</p>
-        <p class="now-pick">—</p>
+        <p class="now-pick">&ndash;</p>
       </div>
       <div class="now-meta">
         <p class="now-clock"></p>
@@ -361,9 +364,9 @@ def render_league(d: dict, idx: int) -> str:
       {slot_html}
       <div class="entry">
         <button class="unlisted-minus" type="button" aria-label="Remove an unlisted pick"
-          title="Undo a +1 &mdash; removes one off-board pick from the count">&minus;1</button>
+          title="Undo a +1: removes one off-board pick from the count">&minus;1</button>
         <button class="unlisted" type="button"
-          title="Someone drafted a player who isn't on this board &mdash; count the pick
+          title="Someone drafted a player who isn't on this board: count the pick
 so the clock stays right">
           <b>+1</b> off-board pick</button>
         <span class="unlisted-n" aria-live="polite"></span>
@@ -377,10 +380,13 @@ so the clock stays right">
 
   <h2>Your roster</h2>
   <div class="roster"></div>
+  </div>
+  </div>
 
+  <div class="col col-board">
   <h2>The board</h2>
   <p class="lede">Tap a player the moment he's taken. Tap again to undo.
-  <b>+</b> marks him as yours. Everything above recalculates from what's actually gone —
+  <b>+</b> marks him as yours. Everything above recalculates from what's actually gone,
   which is the part a checklist can't do.</p>
   <div class="tools">
     <input class="search" type="search" placeholder="Search player or team"
@@ -393,7 +399,7 @@ so the clock stays right">
 
   <details class="rescue">
     <summary>Save or restore this draft</summary>
-    <p class="lede">Picks save to this browser automatically. This code is the backup —
+    <p class="lede">Picks save to this browser automatically. This code is the backup:
     copy it if you want to move to another device, or if the tab might get evicted.</p>
     <input class="statecode" readonly aria-label="Draft state code">
     <p class="rescue-actions">
@@ -401,12 +407,15 @@ so the clock stays right">
       <button class="reset" type="button">Clear all picks</button>
     </p>
     <p class="store-note" hidden><b>This browser is blocking storage.</b>
-    Picks will hold for this session but not survive a reload — copy the code above
+    Picks will hold for this session but not survive a reload. Copy the code above
     if you need to be safe.</p>
   </details>
+  </div>
 
+  <div class="col col-wide">
   {curve_html}
   {hurt}
+  </div>
 </section>"""
 
 
@@ -426,9 +435,31 @@ def asset(name: str) -> str:
     return (ASSETS / name).read_text(encoding="utf-8")
 
 
-def _render(data: list[dict], live: bool) -> str:
+def team_codes(data: list[dict]) -> set[str]:
+    """Every pro-team abbreviation on any board, for the logo sheet."""
+    return {pl["team"] for d in data for pl in d["rows"]}
+
+
+def logo_css(logos: dict[str, tuple[str, str]]) -> str:
+    """One class per team carrying its mark as a background, so 250 rows share
+    32 images instead of inlining the same bytes per row. Dark variants only
+    for the clubs whose mark disappears on a dark ground."""
+    if not logos:
+        return ""
+    light = "".join(f".tm-{k}{{background-image:url({v[0]})}}" for k, v in logos.items())
+    dark = "".join(f".tm-{k}{{background-image:url({v[1]})}}" for k, v in logos.items() if v[1])
+    css = light
+    if dark:
+        css += (f'\n:root:not([data-theme="light"]){{@media (prefers-color-scheme:dark){{{dark}}}}}'
+                f'\n:root[data-theme="dark"]{{{dark}}}')
+    return f"<style>{css}</style>"
+
+
+def _render(data: list[dict], live: bool, logos: dict[str, tuple[str, str]] | None = None) -> str:
     """Assemble the page. `live` arms the ESPN poller — only the local server can
-    serve that, because a published artifact's CSP cannot reach ESPN at all."""
+    serve that, because a published artifact's CSP cannot reach ESPN at all.
+    `logos` is the team -> data URI sheet from images.logos(); None renders
+    blank tiles."""
     today = date.today()
     tabs = "".join(
         f'<button class="tab" role="tab" id="tab{i}" data-panel="lg{i}" '
@@ -478,12 +509,13 @@ def _render(data: list[dict], live: bool) -> str:
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{FONTS}">
 <style>{asset("board.css")}</style>
+{logo_css(logos or {})}
 <div class="wrap">
   <header class="masthead">
     <p class="kicker">{today.year} draft day &middot; built {today.isoformat()}</p>
     <h1>On the Clock</h1>
     <p class="sub">{len(data)} leagues, each board built from that league's own scoring and
-    real lineup &mdash; superflex counts, flex counts, all of it. Tap players off as they go
+    real lineup: superflex counts, flex counts, all of it. Tap players off as they go
     and everything recalculates against who is actually gone.</p>
   </header>
 
@@ -491,7 +523,7 @@ def _render(data: list[dict], live: bool) -> str:
   {panels}
 
   <footer>
-    <p><b>Projections</b> are ESPN's own, run through each league's actual scoring &mdash;
+    <p><b>Projections</b> are ESPN's own, run through each league's actual scoring,
     verified by recomputing every rule against ESPN's projected stat lines and matching
     their published totals to the cent. <b>VOR</b> is value over replacement, where
     replacement comes from a greedy fill of that league's real starting lineup.</p>
@@ -499,14 +531,14 @@ def _render(data: list[dict], live: bool) -> str:
     <b>During it</b>, the model switches to something stronger: how many players the market
     rates above him are still on the board, against how many picks separate you from your
     turn. Recording picks makes the numbers better, not just tidier.</p>
-    <p><b>Kickers and defenses sit at the bottom with real numbers</b> &mdash; VOR against
+    <p><b>Kickers and defenses sit at the bottom with real numbers</b>: VOR against
     the first unit left on waivers. Still take them with your last two picks; the numbers
     are there so those picks aren't guesses.
     <b>Only Out and Doubtful are flagged</b>; ESPN had 17 of the top 20 projected players
     marked Questionable in camp.</p>
     <p>{"<b>Live sync is on.</b> Picks entered in ESPN are marked off automatically; "
        "tapping still works and always wins. " if live else ""}Picks are stored in this
-    browser only &mdash; nothing is shared or uploaded. Rebuild the board the morning of
+    browser only; nothing is shared or uploaded. Rebuild the board the morning of
     each draft; August boards move weekly.</p>
   </footer>
 </div>
@@ -523,12 +555,13 @@ def build_page(
     """Fetch every configured league and render the one page. `leagues` defaults
     to leagues.toml in the working directory."""
     data = [gather(cfg, year, cookies) for cfg in (leagues or config.leagues())]
-    return _render(data, live), data
+    return _render(data, live, images.logos(team_codes(data))), data
 
 
-def render_page(data: list[dict], live: bool = False) -> str:
+def render_page(data: list[dict], live: bool = False,
+                logos: dict[str, tuple[str, str]] | None = None) -> str:
     """Render from already-gathered league dicts (the demo and tests use this)."""
-    return _render(data, live)
+    return _render(data, live, logos)
 
 
 def write_csv(data: list[dict]) -> None:

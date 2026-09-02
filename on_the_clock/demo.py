@@ -15,7 +15,7 @@ import argparse
 import json
 from pathlib import Path
 
-from . import config, page, plan
+from . import config, images, page, plan
 
 FIXTURES = Path(__file__).resolve().parent / "demo"
 
@@ -36,7 +36,10 @@ def load() -> list[dict]:
 
 
 def render(live: bool = False) -> str:
-    return page.render_page(load(), live=live)
+    data = load()
+    # Team marks come from the bundled fixture, never the network.
+    logos = images.logos(page.team_codes(data), size=48, cache=FIXTURES / "logos", fetch=False)
+    return page.render_page(data, live=live, logos=logos)
 
 
 def main(argv: list[str] | None = None) -> None:

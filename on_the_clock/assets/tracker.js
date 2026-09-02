@@ -213,7 +213,7 @@ function mount(cfg) {
     /* ESPN's own "this draft is over" flag beats the local clock: picks the
        board never saw (off-board names, a D/ST the feed dropped) leave the
        tally short, and a finished draft must not still say "2 picks away". */
-    els.pick.textContent = cfg.done || np === null ? "—" : np;
+    els.pick.textContent = cfg.done || np === null ? "\u2013" : np;
     const away = np === null ? 0 : np - drafted - 1;
     els.clock.textContent = cfg.done
       ? "Draft complete"
@@ -337,18 +337,18 @@ function mount(cfg) {
     /* the one-line answer to "what am I shopping for right now" */
     let opt;
     if (!cfg.picks.length) {
-      opt = "Draft order not out — <b>set your slot</b> above to arm the pick math. " +
+      opt = "Draft order not out. <b>Set your slot</b> above to arm the pick math. " +
         "The board and live sync work either way.";
     }
     else if (np === null) opt = "";
-    else if (endgame) opt = "Optimize for <b>K / D/ST</b> — last picks";
+    else if (endgame) opt = "Optimize for <b>K / D/ST</b>: last picks";
     else {
       const starters = ["QB", "RB", "WR", "TE"].filter(q => open[q] > 0);
       /* can go <=0 once the K/D-ST picks are spoken for and a starting slot
          is still empty — say so rather than printing "0 picks" */
       const skillLeft = myLeft - streamNeed;
       if (forced && starters.length) {
-        opt = `Fill <b>${starters.join(" / ")}</b> now — ${openSkill} slot${
+        opt = `Fill <b>${starters.join(" / ")}</b> now: ${openSkill} slot${
           openSkill === 1 ? "" : "s"}, ${skillLeft > 0
             ? `${skillLeft} pick${skillLeft === 1 ? "" : "s"}`
             : "no picks to spare"}`;
@@ -356,16 +356,16 @@ function mount(cfg) {
         const q = starters.sort((a, b) => waitPos[b] - waitPos[a])[0];
         const w = Math.round(waitPos[q]);
         opt = w >= 4
-          ? `Optimize for <b>${q}</b> — waiting past ${np2 ?? "your next pick"} costs ~${w} pts`
+          ? `Optimize for <b>${q}</b>: waiting past ${np2 ?? "your next pick"} costs ~${w} pts`
           : `Open slot${starters.length === 1 ? "" : "s"} (${starters.join(", ")})` +
-            " cheap later — take <b>value</b>";
+            " cheap later, take <b>value</b>";
       } else if (flexOpen > 0) {
         const k = famOpen.findIndex(v => v > 0);
         const w = Math.round(waitFam[k] || 0);
-        opt = `Optimize for <b>${fams[k].label}</b> — ${famOpen[k]} open${
+        opt = `Optimize for <b>${fams[k].label}</b>: ${famOpen[k]} open${
           w >= 4 ? `, waiting costs ~${w} pts` : ""}`;
       } else {
-        opt = "Optimize for <b>RB/WR depth</b> — starters filled";
+        opt = "Optimize for <b>RB/WR depth</b>: starters filled";
       }
     }
     $(".now-opt", root).innerHTML = opt;
@@ -386,7 +386,7 @@ function mount(cfg) {
         <span class="bar" style="--p:${pr.toFixed(3)}"></span>
         <button class="mine-btn" type="button" aria-label="Mark ${p.n} as mine">+</button>
         <span class="pct">${Math.round(pr * 100)}%</span>
-        <span class="who">${p.n}<span class="pos">${p.p}${p.r}</span>${mk}</span>
+        <span class="who"><i class="tm tm-${p.t}" aria-hidden="true"></i>${p.n}<span class="pos">${p.p}${p.r}</span>${mk}</span>
         <span class="vor" title="Tap: VOR / fit score">${
           Math.round(fitMode ? score(i) : p.v)}</span></li>`;
     }).join("");
@@ -395,7 +395,7 @@ function mount(cfg) {
       const i = ranked.find(j => players[j].p === pos && !players[j].o);
       if (i === undefined) return "";
       return `<div class="pb"><span class="pb-pos">${pos}</span>
-        <span class="pb-name">${players[i].n}</span>
+        <span class="pb-name"><i class="tm tm-${players[i].t}" aria-hidden="true"></i>${players[i].n}</span>
         <span class="pb-vor">${Math.round(players[i].v)}</span></div>`;
     }).join("");
 
@@ -421,7 +421,8 @@ function mount(cfg) {
     }
     const slotHtml = slots.map(s =>
       `<div class="slot${s.who ? " filled" : ""}"><span class="slot-l">${s.label}</span>
-       <span class="slot-w">${s.who ? s.who.n : "\u2014"}</span></div>`).join("");
+       <span class="slot-w${s.who ? "" : " open"}">${s.who
+         ? `<i class="tm tm-${s.who.t}" aria-hidden="true"></i>${s.who.n}` : "open"}</span></div>`).join("");
     const benchHtml = pool.length
       ? `<div class="slot bench"><span class="slot-l">BENCH</span>
          <span class="slot-w">${pool.map(p => p.n).join(", ")}</span></div>`

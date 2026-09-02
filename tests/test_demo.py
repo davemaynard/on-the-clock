@@ -40,3 +40,35 @@ def test_demo_marks_reach_the_page():
     html = demo.render()
     assert '<details class="plan">' in html
     assert "mk-target" in html
+
+
+def test_demo_logos_come_from_the_fixture():
+    """Team marks are read from the bundled logo directory, never the network,
+    and only the clubs ESPN gives a dark variant carry one."""
+    import re
+
+    from on_the_clock import images, page
+
+    data = demo.load()
+    codes = page.team_codes(data)
+    logos = images.logos(codes, cache=demo.FIXTURES / "logos", fetch=False)
+    assert len(logos) == 32
+    assert all(light.startswith("data:image/png;base64,") for light, _ in logos.values())
+    assert {k for k, (_, dark) in logos.items() if dark} == {
+        "DAL", "DEN", "GB", "LAR", "LV", "MIN", "NYG", "NYJ"}
+    html = demo.render()
+    assert ".tm-DET{background-image:url(data:image/png" in html
+    assert '<i class="tm tm-DET" aria-hidden="true"></i>' in html
+    # one rule per team, not one image per row
+    assert len(re.findall(r"\.tm-[A-Z]+\{background-image", html)) == 32 + 2 * 8
+    # an unknown code (stubs, free agents) is a blank tile, not a crash
+    assert images.logos({"FA", "?"}, cache=demo.FIXTURES / "logos", fetch=False) == {}
+
+
+def test_demo_copy_has_no_em_dashes():
+    """Colons, commas, and full stops do the work; the dash is a tell."""
+    import re
+
+    html = demo.render()
+    visible = re.sub(r"<(script|style)[^>]*>.*?</\1>", "", html, flags=re.S)
+    assert "—" not in visible and "&mdash;" not in visible

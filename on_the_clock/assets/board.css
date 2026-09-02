@@ -6,14 +6,20 @@
   --scrim:#1F6FB2;         /* line of scrimmage */
   --urgent:#B33A2B;
   --good:#1F7A48;          /* target chips */
+  --sleeper:#7A5FD3;       /* sleeper tag */
+  --on-accent:#FFFFFF;     /* text on --scrim / --urgent fills */
+  --on-flag:#131922;       /* text on --flag-fill, both modes */
   --shadow:0 1px 2px rgba(19,25,34,.06), 0 6px 16px -10px rgba(19,25,34,.25);
+  --r-ctl:2px;             /* chips, tags, buttons, inputs */
+  --r-box:3px;             /* panels, lists, cards */
+  --ease:150ms ease;
 }
 :root:not([data-theme="light"]){
   @media (prefers-color-scheme:dark){
     --ground:#0F141B; --surface:#171E28; --sunk:#121821;
     --ink:#E6EBF1; --muted:#8B98A7; --line:#27313E;
     --flag:#F0C22B; --flag-fill:#F0C22B; --scrim:#5FA8DE; --urgent:#E0755F;
-    --good:#2E9960;
+    --good:#2E9960; --sleeper:#9D86E8; --on-accent:#0F141B;
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 20px -12px rgba(0,0,0,.7);
   }
 }
@@ -21,7 +27,7 @@
   --ground:#0F141B; --surface:#171E28; --sunk:#121821;
   --ink:#E6EBF1; --muted:#8B98A7; --line:#27313E;
   --flag:#F0C22B; --flag-fill:#F0C22B; --scrim:#5FA8DE; --urgent:#E0755F;
-  --good:#2E9960;
+  --good:#2E9960; --sleeper:#9D86E8; --on-accent:#0F141B;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 20px -12px rgba(0,0,0,.7);
 }
 
@@ -36,7 +42,7 @@ body{
   display:flex; flex-direction:column; gap:1.5rem}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
-h1,h2,h3,.rd,.chip,.lbl,thead th{font-family:"Barlow Condensed","Arial Narrow",Arial,sans-serif}
+h1,h2,h3,.rd,.chip,thead th{font-family:"Barlow Condensed","Arial Narrow",Arial,sans-serif}
 h1{font-size:clamp(2.4rem,9vw,3.6rem); font-weight:700; line-height:.95; margin:0;
   letter-spacing:-.01em; text-wrap:balance; text-transform:uppercase}
 h2{font-size:clamp(1.4rem,4.5vw,1.8rem); font-weight:600; text-transform:uppercase;
@@ -57,12 +63,15 @@ header.masthead{display:flex; flex-direction:column; gap:.5rem;
 .tab{font-family:"Barlow Condensed",Arial,sans-serif; font-size:1.05rem; font-weight:600;
   text-transform:uppercase; letter-spacing:.05em;
   background:var(--surface); color:var(--muted); border:1px solid var(--line);
-  border-radius:2px; padding:.45rem 1rem; cursor:pointer; box-shadow:var(--shadow)}
+  border-radius:var(--r-ctl); padding:.45rem 1rem; cursor:pointer; box-shadow:var(--shadow)}
 .tab[aria-selected="true"]{background:var(--ink); color:var(--ground); border-color:var(--ink)}
 .tab:focus-visible,.chip:focus-visible{outline:2px solid var(--scrim); outline-offset:2px}
 
 .league{display:none; flex-direction:column; gap:.75rem}
 .league.is-active{display:flex}
+/* The three columns are markup-only below 64rem: display:contents lets the
+   flex gap keep spacing every block as if the wrappers weren't there. */
+.col,.rail-stick{display:contents}
 
 .stat-row{display:flex; flex-wrap:wrap; gap:.35rem .9rem; color:var(--muted); font-size:.9rem}
 .stat-row b{font-family:"IBM Plex Mono",monospace; color:var(--ink);
@@ -73,13 +82,12 @@ header.masthead{display:flex; flex-direction:column; gap:.5rem;
   font-weight:600; text-transform:uppercase; letter-spacing:.05em}
 .slot-select{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:1rem;
   padding:.25rem .4rem; background:var(--sunk); color:var(--ink);
-  border:1px solid var(--line); border-radius:2px}
+  border:1px solid var(--line); border-radius:var(--r-ctl)}
 .slot-note{color:var(--muted); font-size:.85rem; max-width:52ch}
 .lineup-desc{font-size:.85rem}
 
-.picks-strip{display:flex; flex-wrap:wrap; gap:.3rem}
 .chip{font-family:"IBM Plex Mono",monospace; font-size:.78rem; font-variant-numeric:tabular-nums;
-  background:var(--sunk); border:1px solid var(--line); border-radius:2px;
+  background:var(--sunk); border:1px solid var(--line); border-radius:var(--r-ctl);
   padding:.12rem .45rem; color:var(--muted)}
 .chip:first-child{background:var(--ink); color:var(--ground); border-color:var(--ink)}
 
@@ -91,38 +99,30 @@ table{border-collapse:collapse; width:100%; min-width:30rem}
 .curve tbody th{text-align:left; font-family:"Barlow Condensed",Arial,sans-serif;
   font-size:1.05rem; font-weight:600; letter-spacing:.05em}
 .heat{display:block; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
-  padding:.2rem .35rem; border-radius:2px;
+  padding:.2rem .35rem; border-radius:var(--r-ctl);
   background:color-mix(in srgb, var(--scrim) calc(var(--fill) * 26%), transparent)}
-
-.picks{display:grid; gap:.75rem}
-@media (min-width:40rem){ .picks{grid-template-columns:repeat(2,1fr)} }
-.pick{background:var(--surface); border:1px solid var(--line); border-radius:3px;
-  padding:.85rem .9rem; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:.5rem}
-.pick>header{display:flex; align-items:baseline; justify-content:space-between; gap:.5rem;
-  border-bottom:1px solid var(--line); padding-bottom:.35rem}
-.rd{font-size:1rem; font-weight:600; text-transform:uppercase; letter-spacing:.08em;
-  color:var(--muted)}
-.num{font-family:"IBM Plex Mono",monospace; font-size:1.6rem; font-weight:600;
-  font-variant-numeric:tabular-nums; line-height:1}
-.steer{font-size:.88rem; color:var(--ink);
-  border-left:1px solid var(--flag-fill); padding:.3rem 0 .3rem .55rem}
-.steer.even{border-left-color:var(--line); color:var(--muted)}
 
 ol.cands,.hurt ol{list-style:none; margin:0; padding:0; display:flex;
   flex-direction:column; gap:.1rem}
 .cand{position:relative; display:grid;
   grid-template-columns:1.7rem 2.6rem 1fr auto; align-items:center; gap:.5rem;
-  padding:.22rem .35rem; border-radius:2px; font-size:.9rem; isolation:isolate;
+  padding:.22rem .35rem; border-radius:var(--r-ctl); font-size:.9rem; isolation:isolate;
   cursor:pointer}
 .cand .mine-btn{align-self:center}
 .bar{position:absolute; inset:0 auto 0 0; width:calc(var(--p) * 100%); z-index:-1;
-  border-radius:2px; opacity:.16; background:var(--scrim)}
+  border-radius:var(--r-ctl); opacity:.16; background:var(--scrim)}
 .cand.mid .bar{background:var(--flag-fill); opacity:.22}
 .cand.lo .bar{background:var(--urgent); opacity:.16}
 .pct{font-family:"IBM Plex Mono",monospace; font-size:.78rem; font-variant-numeric:tabular-nums;
   color:var(--muted); text-align:right}
 .cand.lo .pct{color:var(--urgent)}
 .who{min-width:0}
+/* Team mark: one em square that sits on the text line. The class carries no
+   image of its own; the page emits .tm-XXX rules with the bytes, so an
+   unknown code (a stub, a free agent) is a blank tile and the names still
+   align. */
+.tm{display:inline-block; width:1.15em; height:1.15em; flex:none; vertical-align:-.22em;
+  margin-right:.35em; background:center/contain no-repeat}
 .pos{font-family:"IBM Plex Mono",monospace; font-size:.72rem; color:var(--muted);
   margin-left:.4rem; white-space:nowrap}
 .vor{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-weight:600}
@@ -133,19 +133,19 @@ ol.cands,.hurt ol{list-style:none; margin:0; padding:0; display:flex;
    weighted to the top centers the box on the cap band instead. Vertical
    padding is em so it holds at every chip size. */
 .tag{font-family:"IBM Plex Mono",monospace; font-size:.62rem; text-transform:uppercase;
-  letter-spacing:.06em; line-height:1; padding:.25em .3rem; border-radius:2px;
-  margin-left:.35rem; background:var(--urgent); color:#fff; white-space:nowrap}
+  letter-spacing:.06em; line-height:1; padding:.25em .3rem; border-radius:var(--r-ctl);
+  margin-left:.35rem; background:var(--urgent); color:var(--on-accent); white-space:nowrap}
 .tag.mk-target{background:var(--good)}
 .tag.mk-fade{background:var(--urgent)}
-.tag.mk-alert{background:var(--flag-fill); color:#131922}
-.tag.mk-slp{background:#7a5fd3}
+.tag.mk-alert{background:var(--flag-fill); color:var(--on-flag)}
+.tag.mk-slp{background:var(--sleeper)}
 /* reprice verdicts: hard no reads urgent, price-conditional reads calm */
 .tag.mk-avoid{background:var(--urgent); outline:1px solid var(--ink)}
 .tag.mk-stash{background:var(--scrim)}
 .rw-why{display:block; font-size:.72rem; line-height:1.35; color:var(--muted);
   font-family:"Source Sans 3","Helvetica Neue",Arial,sans-serif;
   white-space:normal; overflow-wrap:anywhere}
-.plan{background:var(--surface); border:1px solid var(--line); border-radius:6px;
+.plan{background:var(--surface); border:1px solid var(--line); border-radius:var(--r-box);
   box-shadow:var(--shadow)}
 .plan summary{cursor:pointer; padding:.65rem 1rem;
   font-family:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
@@ -162,18 +162,15 @@ ol.cands,.hurt ol{list-style:none; margin:0; padding:0; display:flex;
   font-size:.7rem; white-space:nowrap}
 .plan-note{padding:0 1rem .8rem; font-size:.78rem; color:var(--muted); margin:0;
   border-top:1px dashed var(--line); padding-top:.6rem}
-.gone{font-size:.82rem; color:var(--muted); border-top:1px dashed var(--line); padding-top:.4rem}
-.lbl{display:inline-block; font-size:.85rem; text-transform:uppercase; letter-spacing:.07em;
-  color:var(--urgent); margin-right:.4rem}
 /* --- live tracker --- */
 .now{position:sticky; top:0; z-index:5; background:var(--surface);
-  border:1px solid var(--line); border-radius:3px; padding:.8rem .9rem;
+  border:1px solid var(--line); border-radius:var(--r-box); padding:.8rem .9rem;
   box-shadow:var(--shadow); display:flex; flex-direction:column; gap:.55rem}
 .now-head{display:flex; align-items:flex-start; gap:1rem; cursor:pointer}
 .now-meta{margin-left:auto}
 .now-body{display:flex; flex-direction:column; gap:.55rem}
 .now-fold{flex:none; align-self:center; width:2.6rem; height:2.6rem; cursor:pointer;
-  background:var(--sunk); border:1px solid var(--muted); border-radius:2px; position:relative}
+  background:var(--sunk); border:1px solid var(--muted); border-radius:var(--r-ctl); position:relative}
 .now-fold::after{content:""; position:absolute; left:50%; top:50%; width:.6rem; height:.6rem;
   border-right:3px solid var(--ink); border-bottom:3px solid var(--ink);
   transform:translate(-50%,-30%) rotate(-135deg)}
@@ -222,7 +219,7 @@ ol.cands,.hurt ol{list-style:none; margin:0; padding:0; display:flex;
   padding:.45rem 0; margin:.1rem 0}
 .entry .undo{margin-left:auto}
 .entry button{font:inherit; font-size:.85rem; padding:.32rem .6rem; cursor:pointer;
-  background:var(--sunk); color:var(--ink); border:1px solid var(--line); border-radius:2px}
+  background:var(--sunk); color:var(--ink); border:1px solid var(--line); border-radius:var(--r-ctl)}
 .entry .unlisted{flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis;
   white-space:nowrap; text-align:left}
 .entry .unlisted b{font-family:"IBM Plex Mono",monospace}
@@ -234,19 +231,20 @@ ol.cands,.hurt ol{list-style:none; margin:0; padding:0; display:flex;
 .rw-vor.dim{color:var(--line)}
 .pos-best{display:grid; grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr)); gap:.3rem}
 .pb{display:flex; align-items:baseline; gap:.4rem; font-size:.85rem;
-  background:var(--sunk); border-radius:2px; padding:.2rem .4rem}
+  background:var(--sunk); border-radius:var(--r-ctl); padding:.2rem .4rem}
 .pb-pos{font-family:"Barlow Condensed",Arial,sans-serif; font-weight:600; letter-spacing:.05em;
   color:var(--muted)}
 .pb-name{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .pb-vor{font-family:"IBM Plex Mono",monospace; font-weight:600; font-variant-numeric:tabular-nums}
 
 .roster{display:grid; grid-template-columns:repeat(auto-fill,minmax(11rem,1fr)); gap:.3rem}
-.slot{display:flex; gap:.5rem; align-items:baseline; padding:.28rem .45rem; border-radius:2px;
+.slot{display:flex; gap:.5rem; align-items:baseline; padding:.28rem .45rem; border-radius:var(--r-ctl);
   background:var(--sunk); border:1px solid transparent; font-size:.88rem}
 .slot.filled{background:var(--surface); border-color:var(--line)}
 .slot-l{font-family:"Barlow Condensed",Arial,sans-serif; font-weight:600; letter-spacing:.06em;
   color:var(--muted); min-width:2.6rem}
 .slot-w{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.slot-w.open{color:var(--muted); font-size:.8rem; text-transform:uppercase; letter-spacing:.06em}
 .slot.bench{grid-column:1/-1}
 
 /* Sticks just below the assistant panel, whose live height the tracker writes
@@ -256,22 +254,22 @@ ol.cands,.hurt ol{list-style:none; margin:0; padding:0; display:flex;
   position:sticky; top:var(--nowh,0px); z-index:4; background:var(--ground);
   padding:.4rem 0}
 .search{flex:1 1 12rem; min-width:0; font:inherit; font-size:.95rem; padding:.4rem .6rem;
-  background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:2px}
+  background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:var(--r-ctl)}
 .chips{display:flex; gap:.25rem; flex:1 1 100%; min-width:0}
 .chips .posfilter{flex:1; padding-left:0; padding-right:0; text-align:center; min-width:0}
 .posfilter{font-family:"Barlow Condensed",Arial,sans-serif; font-size:.95rem; font-weight:600;
-  letter-spacing:.05em; padding:.3rem .6rem; border-radius:2px; cursor:pointer;
+  letter-spacing:.05em; padding:.3rem .6rem; border-radius:var(--r-ctl); cursor:pointer;
   background:var(--surface); color:var(--muted); border:1px solid var(--line)}
 .posfilter.on{background:var(--ink); color:var(--ground); border-color:var(--ink)}
 .posfilter.muted{opacity:.45}
 .toggle{display:flex; align-items:center; gap:.35rem; font-size:.85rem; color:var(--muted);
   flex:1 1 auto}
 .tools .undo{font:inherit; font-size:.85rem; padding:.32rem .6rem; cursor:pointer;
-  background:var(--sunk); color:var(--ink); border:1px solid var(--line); border-radius:2px}
+  background:var(--sunk); color:var(--ink); border:1px solid var(--line); border-radius:var(--r-ctl)}
 .tools .undo:disabled{opacity:.4; cursor:default}
 
 .board-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column;
-  border:1px solid var(--line); border-radius:3px; overflow:hidden; background:var(--surface)}
+  border:1px solid var(--line); border-radius:var(--r-box); overflow:hidden; background:var(--surface)}
 /* Each li is its own grid, so auto tracks would size per-row and the pos/team
    columns would wander. Fixed tracks make every row share one set of column
    edges, like a table: pos fits "DST18", team fits any 3-letter code. */
@@ -289,9 +287,9 @@ ol.cands,.hurt ol{list-style:none; margin:0; padding:0; display:flex;
 /* In the hurt list the tag leads the name, so the gap goes on its right. */
 .hurt .tag{margin-left:0; margin-right:.4rem}
 .row.is-mine{background:color-mix(in srgb, var(--scrim) 14%, transparent)}
-.row.is-mine .mine-btn{background:var(--scrim); color:#fff; border-color:var(--scrim)}
+.row.is-mine .mine-btn{background:var(--scrim); color:var(--on-accent); border-color:var(--scrim)}
 .mine-btn{font-family:"IBM Plex Mono",monospace; font-size:.85rem; line-height:1;
-  padding:.15rem 0; width:1.7rem; border-radius:2px; cursor:pointer;
+  padding:.15rem 0; width:1.7rem; border-radius:var(--r-ctl); cursor:pointer;
   background:var(--sunk); color:var(--muted); border:1px solid var(--line)}
 .rw-name{min-width:0; display:flex; align-items:baseline}
 /* The name owns the leftover space and the chip never steals it: a chip that
@@ -307,22 +305,45 @@ ol.cands,.hurt ol{list-style:none; margin:0; padding:0; display:flex;
 .rw-vor{font-family:"IBM Plex Mono",monospace; font-weight:600; text-align:right;
   font-variant-numeric:tabular-nums}
 
-.rescue{border:1px solid var(--line); border-radius:3px; padding:.6rem .8rem;
+.rescue{border:1px solid var(--line); border-radius:var(--r-box); padding:.6rem .8rem;
   background:var(--sunk)}
 .rescue summary{cursor:pointer; font-family:"Barlow Condensed",Arial,sans-serif;
   font-size:1.05rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em}
 .rescue>*+*{margin-top:.5rem}
 .statecode{width:100%; font-family:"IBM Plex Mono",monospace; font-size:.75rem;
   padding:.35rem .5rem; background:var(--surface); color:var(--ink);
-  border:1px solid var(--line); border-radius:2px}
+  border:1px solid var(--line); border-radius:var(--r-ctl)}
 .rescue-actions{display:flex; gap:.5rem; flex-wrap:wrap}
 .rescue-actions button{font:inherit; font-size:.85rem; padding:.3rem .7rem; cursor:pointer;
-  background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:2px}
+  background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:var(--r-ctl)}
 .store-note{font-size:.85rem; color:var(--urgent)}
 button:focus-visible,input:focus-visible,summary:focus-visible,.row:focus-visible{
   outline:2px solid var(--scrim); outline-offset:2px}
 
-.hurt{background:var(--sunk); border:1px solid var(--line); border-radius:3px; padding:.85rem .9rem}
+/* --- states: every clickable thing answers hover, press, and focus --- */
+.tab,.posfilter,.mine-btn,.entry button,.tools .undo,.rescue-actions button,.now-fold,
+.plan summary,.rescue summary,.now-head,.row,.cand,.search,.statecode{
+  transition:background-color var(--ease), color var(--ease), border-color var(--ease),
+    box-shadow var(--ease), transform var(--ease)}
+@media (hover:hover){
+  .tab:hover:not([aria-selected="true"]),.posfilter:hover:not(.on){
+    color:var(--ink); border-color:var(--muted)}
+  .mine-btn:hover,.entry button:hover:not(:disabled),.tools .undo:hover:not(:disabled),
+  .rescue-actions button:hover,.now-fold:hover{
+    color:var(--ink); border-color:var(--muted); background:var(--surface)}
+  .row.is-mine .mine-btn:hover{background:var(--scrim); color:var(--on-accent); border-color:var(--scrim)}
+  .row:hover:not(.is-gone),.cand:hover{background:color-mix(in srgb, var(--scrim) 7%, transparent)}
+  .row.is-mine:hover{background:color-mix(in srgb, var(--scrim) 20%, transparent)}
+  .plan summary:hover,.rescue summary:hover,.now-head:hover{color:var(--scrim)}
+  .search:hover,.statecode:hover{border-color:var(--muted)}
+}
+.tab:active,.posfilter:active,.mine-btn:active,.entry button:active:not(:disabled),
+.tools .undo:active:not(:disabled),.rescue-actions button:active,.now-fold:active{
+  transform:translateY(1px)}
+.search:focus,.statecode:focus{border-color:var(--scrim); outline:none}
+.search:focus-visible,.statecode:focus-visible{outline:2px solid var(--scrim); outline-offset:0}
+
+.hurt{background:var(--sunk); border:1px solid var(--line); border-radius:var(--r-box); padding:.85rem .9rem}
 .hurt li{font-size:.9rem}
 
 footer{border-top:1px solid var(--line); padding-top:1rem; color:var(--muted); font-size:.85rem;
@@ -347,6 +368,23 @@ footer b{color:var(--ink)}
   .rw-pos{margin-left:.3rem}   /* name group ends, metadata group begins */
   .rw-vor{margin-left:.3rem}   /* metadata ends, the number stands alone */
   .rw-pos,.rw-team{font-size:.68rem}
+  .pb .tm{display:none}   /* the chip is 11rem wide: the name needs the em more than the mark */
+}
+/* Wide screens: the assistant + roster become a rail on the left, the board
+   takes the right, and the pre-draft tables span both. The plan scrolls
+   away; the assistant and your roster stick together as one block, so the
+   board never loses its guide. */
+@media (min-width:64rem){
+  .wrap{max-width:76rem}
+  .league.is-active{display:grid; grid-template-columns:minmax(0,23rem) minmax(0,1fr);
+    gap:1rem 2rem; align-items:stretch}
+  .col{display:flex; flex-direction:column; gap:.75rem; min-width:0}
+  .rail-stick{display:flex; flex-direction:column; gap:.75rem; position:sticky; top:1rem}
+  .col-wide{grid-column:1/-1}
+  .now{position:static}
+  .tools{top:0}
+  .row{grid-template-columns:1.9rem 1fr 3.2rem 2.6rem 3rem; gap:.75rem}
+  .roster{grid-template-columns:1fr 1fr}
 }
 @media (pointer:coarse){
   .search,.statecode{font-size:1rem}
@@ -358,6 +396,5 @@ footer b{color:var(--ink)}
 }
 @media print{
   body{background:#fff} .tabs{display:none} .league{display:flex !important}
-  .pick{break-inside:avoid; box-shadow:none}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important}}

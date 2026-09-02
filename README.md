@@ -94,9 +94,11 @@ first.
 
 ## Status
 
-Working and used for real drafts. The visual layer is functional rather than
-finished — a design pass (tokens, player headshots and team logos via `images.py`,
-layout at tablet widths) is the next milestone.
+Working and used for real drafts. Phone-first, with a two-column draft room from
+64rem up (assistant and roster pinned on the left, the board on the right), light
+and dark, team marks inlined from a 32-image sheet so the page stays one request.
+Player headshots are deliberately left out: 260 inlined portraits would triple the
+page for a face you already know.
 
 ## License
 
