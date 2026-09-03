@@ -2,22 +2,24 @@
   "name": "on-the-clock-web",
   "private": true,
   "version": "0.1.0",
-  "description": "The draft board's browser side: Preact components with CSS modules, built by esbuild into on_the_clock/assets/ for the Python package to inline.",
+  "description": "The draft board's browser side: Preact components in TypeScript with CSS modules, built by esbuild into on_the_clock/assets/ for the Python package to inline.",
   "type": "module",
   "scripts": {
-    "build": "node web/build.mjs",
-    "check": "biome check .",
+    "build": "node web/build.ts",
+    "check": "biome check . && tsc --noEmit",
     "format": "biome format --write .",
-    "test": "node --test \"web/test/*.test.mjs\"",
-    "test:browser": "node --test web/test/browser.test.mjs"
+    "test": "node --test \"web/test/*.test.ts\"",
+    "test:browser": "node --test web/test/browser.test.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.11",
+    "@types/node": "^24.13.3",
     "esbuild": "^0.28.2",
-    "playwright": "^1.62.1"
+    "playwright": "^1.62.1",
+    "typescript": "5.9.3"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "dependencies": {
     "preact": "10.29.8"

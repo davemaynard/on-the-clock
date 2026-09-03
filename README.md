@@ -92,16 +92,18 @@ Python does the thinking; the browser draws the board.
 - `on_the_clock/` reads ESPN, computes VOR and the cost of waiting, and renders one
   self-contained HTML page: the shell, the stylesheet, a 32-image team-mark sheet, the
   data as `window.ON_THE_CLOCK`, and the bundle that renders it.
-- `web/src/` is a Preact app, one component per piece of the page with its own CSS
-  module beside it: `app/` (masthead, league tabs, footer), `league/` (the draft room,
+- `web/src/` is a Preact app in TypeScript, one component per piece of the page with
+  its own CSS module beside it: `app/` (masthead, league tabs, footer), `league/` (the draft room,
   the plan rail, the pre-draft tables, and the hooks that own state), `assistant/`
   (next pick, best available, roster), `board/` (tools, rows, the rescue code) and
   `player/` (name, tag, team mark). `styles/` holds the tokens, the element defaults
   and the primitives the modules extend with `composes`. `model/` is the draft math as
-  pure functions, tested on their own.
-- `npm run build` is esbuild alone: JSX and CSS modules are built in, so the whole
-  thing bundles into `on_the_clock/assets/`, which is committed so installing from
-  GitHub needs no Node. CI fails if the assets are stale.
+  pure functions, tested on their own, and `model/types.ts` is the data contract the
+  Python side writes into the page.
+- `npm run build` is esbuild alone: TypeScript, JSX and CSS modules are built in, so the
+  whole thing bundles into `on_the_clock/assets/`, which is committed so installing from
+  GitHub needs no Node. Types are checked by `tsc`, not the bundler. CI fails if the
+  assets are stale.
 
 ## Development
 
@@ -112,7 +114,7 @@ uv run ruff check .
 npm test                       # the draft model and the live-feed merge, then the
                                # rendered demo in Chrome at phone, tablet and desktop
                                # widths, light and dark: geometry and computed style
-npm run check                  # Biome: format and lint web/
+npm run check                  # Biome (format, lint) and tsc (types) over web/
 npm run build                  # web/src -> on_the_clock/assets/ (commit the result)
 uv run on-the-clock demo --out docs/index.html
 uv run on-the-clock demo --out out/demo.html && node web/screenshots.mjs
