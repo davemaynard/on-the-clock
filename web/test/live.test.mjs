@@ -1,40 +1,19 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { startLiveSync } from "../src/tracker/live.js";
+import { mergeFeed } from "../src/model/live.js";
 
 const players = [
   { espnId: 11, name: "A" },
   { espnId: 22, name: "B" },
   { espnId: 33, name: "C" },
 ];
-
-/** Run one poll against a canned ESPN response and return what the tracker did. */
-async function pollOnce(draft, { league, state }) {
-  const calls = { changes: 0, badges: [], slots: [] };
-  globalThis.fetch = async () => ({ json: async () => draft });
-  const realSetInterval = globalThis.setInterval;
-  globalThis.setInterval = () => 0; // one poll is enough for a test
-  try {
-    startLiveSync({
-      league,
-      players,
-      state,
-      onChange: () => calls.changes++,
-      onBadge: (badgeState, text) => calls.badges.push([badgeState, text]),
-      setSlot: (slot) => calls.slots.push(slot),
-    });
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  } finally {
-    globalThis.setInterval = realSetInterval;
-  }
-  return calls;
-}
+const league = { leagueId: "1", team: 6, teams: 12, slot: 3 };
+const fresh = () => ({ drafted: new Set(), mine: new Set(), offBoard: 0 });
 
 describe("live sync merges ESPN's picks without ever un-marking a tap", () => {
-  test("picks mark players drafted, your team's picks mark them mine", async () => {
-    const state = { drafted: new Set([2]), mine: new Set(), offBoard: 0 };
-    const league = { leagueId: "1", team: 6, teams: 12, slot: 3, picks: [] };
-    const calls = await pollOnce(
+  test("picks mark players drafted, your team's picks mark them mine", () => {
+    const state = { ...fresh(), drafted: new Set([2]) };
+    const merged = mergeFeed(
       {
         ok: true,
         inProgress: true,
@@ -43,39 +22,45 @@ describe("live sync merges ESPN's picks without ever un-marking a tap", () => {
           { player: 22, team: 7, overall: 4 },
         ],
       },
-      { league, state },
+      { league, players, state },
     );
-    assert.deepEqual([...state.drafted].sort(), [0, 1, 2], "the earlier tap on C survives");
-    assert.deepEqual([...state.mine], [0]);
-    assert.equal(calls.changes, 1);
-    assert.deepEqual(calls.badges.at(-1), ["live", "2 picks from ESPN"]);
+    assert.deepEqual(merged.drafted, [0, 1], "only what the tap didn't already mark");
+    assert.deepEqual(merged.mine, [0]);
+    assert.deepEqual(merged.badge, { state: "live", text: "2 picks from ESPN" });
+    assert.equal(merged.slot, null, "a known slot is never touched");
   });
 
-  test("off-board picks advance the clock; a finished draft is flagged", async () => {
-    const state = { drafted: new Set(), mine: new Set(), offBoard: 0 };
-    const league = { leagueId: "1", team: 6, teams: 12, slot: 3, picks: [] };
-    await pollOnce(
+  test("off-board picks are counted; a finished draft is flagged", () => {
+    const merged = mergeFeed(
       { ok: true, inProgress: false, drafted: true, picks: [{ player: 999, team: 1, overall: 1 }] },
-      { league, state },
+      { league, players, state: fresh() },
     );
-    assert.equal(league.feedOffBoard, 1);
-    assert.equal(league.done, true);
+    assert.equal(merged.offBoard, 1);
+    assert.equal(merged.done, true);
+    assert.deepEqual(merged.badge, { state: "synced", text: "1 pick from ESPN · 1 off-board" });
   });
 
-  test("a published draft order sets the slot once", async () => {
-    const state = { drafted: new Set(), mine: new Set(), offBoard: 0 };
-    const league = { leagueId: "1", team: 6, teams: 12, slot: 0, picks: [] };
-    const calls = await pollOnce(
+  test("a published draft order sets the slot when none is known", () => {
+    const merged = mergeFeed(
       { ok: true, inProgress: false, orderFinal: true, pickOrder: [2, 6, 9], picks: [] },
-      { league, state },
+      { league: { ...league, slot: 0 }, players, state: fresh() },
     );
-    assert.deepEqual(calls.slots, [2]);
+    assert.equal(merged.slot, 2);
   });
 
-  test("the badge stays silent until ESPN has picks", async () => {
-    const state = { drafted: new Set(), mine: new Set(), offBoard: 0 };
-    const league = { leagueId: "1", team: 6, teams: 12, slot: 3, picks: [] };
-    const calls = await pollOnce({ ok: true, inProgress: false, picks: [] }, { league, state });
-    assert.deepEqual(calls.badges, [["off", ""]]);
+  test("your own first-round pick reveals the slot too", () => {
+    const merged = mergeFeed(
+      { ok: true, inProgress: true, picks: [{ player: 11, team: 6, overall: 5 }] },
+      { league: { ...league, slot: 0 }, players, state: fresh() },
+    );
+    assert.equal(merged.slot, 5);
+  });
+
+  test("the badge stays silent until ESPN has picks", () => {
+    const merged = mergeFeed(
+      { ok: true, inProgress: false, picks: [] },
+      { league, players, state: fresh() },
+    );
+    assert.deepEqual(merged.badge, { state: "off", text: "" });
   });
 });

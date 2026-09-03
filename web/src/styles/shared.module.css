@@ -1,0 +1,197 @@
+/* Primitives the component modules compose. Nothing here is rendered on its own; a
+ * component writes `composes: control from "../styles/shared.module.css"` and then adds
+ * only what makes it different. */
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Copy under a heading: one measure, quieter than the ink. */
+.lede {
+  max-width: 60ch;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* A mono, tabular number, so columns of them line up. */
+.numeral {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The small uppercase mono label used throughout the assistant. */
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Barlow Condensed in caps: headings inside panels, tabs, filters, slot labels. */
+.displayCaps {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* A raised card on the ground. */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-box);
+  box-shadow: var(--shadow);
+}
+
+/* A recessed well: the rescue box, the hurt list, the roster's open slots. */
+.well {
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-box);
+}
+
+/* Every clickable thing answers hover, press and focus the same way. */
+.interactive {
+  transition:
+    background-color var(--ease),
+    color var(--ease),
+    border-color var(--ease),
+    box-shadow var(--ease),
+    opacity var(--ease),
+    transform var(--ease);
+}
+
+/* The quiet button: sunk, a hairline, and it lifts to the surface on hover. */
+.control {
+  composes: interactive;
+  padding: 0.32rem 0.6rem;
+  background: var(--sunk);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.control:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.control:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+@media (hover: hover) {
+  .control:hover:not(:disabled) {
+    background: var(--surface);
+    border-color: var(--muted);
+  }
+}
+
+/* Draft night is a thumb on a phone: real tap targets. */
+@media (pointer: coarse) {
+  .control {
+    padding: 0.5rem 0.7rem;
+  }
+}
+
+/* The same button drawn on a surface, so it recedes instead of lifting. */
+.controlOnSurface {
+  composes: control;
+  background: var(--surface);
+}
+
+@media (hover: hover) {
+  .controlOnSurface:hover:not(:disabled) {
+    background: var(--sunk);
+  }
+}
+
+/* A chip that can be selected: tabs and position filters. Selected inverts to ink. */
+.selectable {
+  composes: interactive displayCaps;
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.selectable:active {
+  transform: translateY(1px);
+}
+
+.selectable[aria-selected="true"],
+.selectable[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--ground);
+  border-color: var(--ink);
+}
+
+@media (hover: hover) {
+  .selectable:hover:not([aria-selected="true"]):not([aria-pressed="true"]) {
+    color: var(--ink);
+    border-color: var(--muted);
+  }
+}
+
+/* Text inputs: the search box and the rescue code. Padding and type are the composer's. */
+.field {
+  composes: interactive;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+}
+
+.field:focus {
+  border-color: var(--scrim);
+  outline: none;
+}
+
+.field:focus-visible {
+  outline: 2px solid var(--scrim);
+  outline-offset: 0;
+}
+
+@media (hover: hover) {
+  .field:hover {
+    border-color: var(--muted);
+  }
+}
+
+/* A disclosure heading (the plan, the rescue box). */
+.summary {
+  composes: interactive displayCaps;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .summary:hover {
+    color: var(--scrim);
+  }
+}
+
+/* The + that claims a player for your roster, on the board and in the candidate list. */
+.claim {
+  composes: control;
+  width: 1.7rem;
+  padding: 0.15rem 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+@media (pointer: coarse) {
+  .claim {
+    width: 2.2rem;
+    padding: 0.4rem 0;
+  }
+}

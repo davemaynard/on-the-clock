@@ -1,0 +1,40 @@
+.leaders {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0.3rem;
+}
+
+.leader {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.2rem 0.4rem;
+  background: var(--sunk);
+  border-radius: var(--radius-control);
+  font-size: 0.85rem;
+}
+
+.pos {
+  composes: displayCaps from "../styles/shared.module.css";
+  color: var(--muted);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vor {
+  composes: numeral from "../styles/shared.module.css";
+  font-weight: 600;
+}
+
+/* The chip is 11rem wide on a phone: the name needs the em more than the mark. */
+@media (max-width: 27rem) {
+  .mark {
+    display: none;
+  }
+}

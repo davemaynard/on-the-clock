@@ -176,10 +176,3 @@ def test_verdicts_stay_chip_sized():
         v = rp["verdict"]
         assert v in st.VERDICTS, f"{name}: {v!r} is not a canonical verdict"
         assert len(v) <= 10, f"{name}: {v!r} is too long for a chip"
-
-
-def test_verdict_tag_never_strands_a_leading_word():
-    assert cheatsheet.verdict_tag("AVOID") == "AVOID"
-    assert cheatsheet.verdict_tag("STASH 160+") == "STASH 160+"
-    assert cheatsheet.verdict_tag("DO NOT DRAFT") == "DO NOT"  # not a bare "DO"
-    assert cheatsheet.verdict_tag("WAIT FOR PRICE") == "WAIT"

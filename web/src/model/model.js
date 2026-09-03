@@ -232,19 +232,25 @@ export function assess(league, players, state) {
   };
 }
 
-/** The one-line answer to "what am I shopping for right now", as HTML. */
+/**
+ * The one-line answer to "what am I shopping for right now". Returns null when there is
+ * nothing to say, else `{before, focus, after}`: the focus is the term the view sets in
+ * bold, kept as data so no HTML string leaves the model.
+ */
 export function advice(league, assessment) {
   const { next, following, endgame, forced, open, picksLeft, streamersNeeded, openSkill } =
     assessment;
   const { familyOpen, families, flexOpen, costs } = assessment;
+  const say = (before, focus, after = "") => ({ before, focus, after });
   if (!league.picks.length) {
-    return (
-      "Draft order not out. <b>Set your slot</b> above to arm the pick math. " +
-      "The board and live sync work either way."
+    return say(
+      "Draft order not out. ",
+      "Set your slot",
+      " above to arm the pick math. The board and live sync work either way.",
     );
   }
-  if (next === null) return "";
-  if (endgame) return "Optimize for <b>K / D/ST</b>: last picks";
+  if (next === null) return null;
+  if (endgame) return say("Optimize for ", "K / D/ST", ": last picks");
 
   const starters = SKILL_POSITIONS.filter((pos) => open[pos] > 0);
   // Can go to zero or below once the K and D/ST picks are spoken for and a starting
@@ -255,23 +261,41 @@ export function advice(league, assessment) {
       skillPicksLeft > 0
         ? `${skillPicksLeft} pick${skillPicksLeft === 1 ? "" : "s"}`
         : "no picks to spare";
-    return `Fill <b>${starters.join(" / ")}</b> now: ${openSkill} slot${openSkill === 1 ? "" : "s"}, ${picks}`;
+    return say(
+      "Fill ",
+      starters.join(" / "),
+      ` now: ${openSkill} slot${openSkill === 1 ? "" : "s"}, ${picks}`,
+    );
   }
   if (starters.length) {
     const pos = starters.sort((a, b) => costs.byPosition[b] - costs.byPosition[a])[0];
     const cost = Math.round(costs.byPosition[pos]);
     if (cost >= 4) {
-      return `Optimize for <b>${pos}</b>: waiting past ${following ?? "your next pick"} costs ~${cost} pts`;
+      return say(
+        "Optimize for ",
+        pos,
+        `: waiting past ${following ?? "your next pick"} costs ~${cost} pts`,
+      );
     }
-    return `Open slot${starters.length === 1 ? "" : "s"} (${starters.join(", ")}) cheap later, take <b>value</b>`;
+    return say(
+      `Open slot${starters.length === 1 ? "" : "s"} (${starters.join(", ")}) cheap later, take `,
+      "value",
+    );
   }
   if (flexOpen > 0) {
     const k = familyOpen.findIndex((count) => count > 0);
     const cost = Math.round(costs.byFamily[k] || 0);
-    return `Optimize for <b>${families[k].label}</b>: ${familyOpen[k]} open${cost >= 4 ? `, waiting costs ~${cost} pts` : ""}`;
+    return say(
+      "Optimize for ",
+      families[k].label,
+      `: ${familyOpen[k]} open${cost >= 4 ? `, waiting costs ~${cost} pts` : ""}`,
+    );
   }
-  return "Optimize for <b>RB/WR depth</b>: starters filled";
+  return say("Optimize for ", "RB/WR depth", ": starters filled");
 }
+
+/** The advice as one plain string, for tests and logs. */
+export const adviceText = (parts) => (parts ? `${parts.before}${parts.focus}${parts.after}` : "");
 
 /** Greedily fill the real starting lineup with what you own; the rest is the bench. */
 export function fillLineup(league, players, mine) {

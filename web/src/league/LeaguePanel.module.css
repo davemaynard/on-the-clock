@@ -1,0 +1,60 @@
+/* The draft room. Phone-first: one column, every block spaced by the panel's gap. From
+ * 64rem the assistant and roster become a rail on the left, the board takes the right,
+ * and the pre-draft tables span both. The plan scrolls away; the assistant and your
+ * roster stick together as one block, so the board never loses its guide. */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.panel[hidden] {
+  display: none;
+}
+
+/* Below the wide breakpoint the column wrappers are markup only: display: contents lets
+ * the panel's gap space every block as if the wrappers weren't there. */
+.rail,
+.board,
+.wide,
+.railSticky {
+  display: contents;
+}
+
+@media (min-width: 64rem) {
+  .panel {
+    display: grid;
+    grid-template-columns: minmax(0, 23rem) minmax(0, 1fr);
+    gap: 1rem 2rem;
+    align-items: stretch;
+  }
+
+  .rail,
+  .board,
+  .wide {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+
+  .wide {
+    grid-column: 1 / -1;
+  }
+
+  .railSticky {
+    position: sticky;
+    top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
+@media print {
+  /* Print every league, whatever tab is active. */
+  .panel[hidden] {
+    display: flex;
+  }
+}

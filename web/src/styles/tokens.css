@@ -1,0 +1,49 @@
+/* Design tokens. Every colour is a light-dark() pair, so the page follows the system
+ * scheme and a host can pin it with data-theme. The voice is broadcast sports: first-down
+ * yellow for the flag, the line of scrimmage for the accent, a hot red for your own calls. */
+
+:root {
+  /* Native controls (the checkbox, the select) follow the page's scheme. */
+  color-scheme: light dark;
+
+  --ground: light-dark(#f2f4f7, #0f141b);
+  --surface: light-dark(#ffffff, #171e28);
+  --sunk: light-dark(#e9edf2, #121821);
+  --ink: light-dark(#131922, #e6ebf1);
+  --muted: light-dark(#5a6672, #8b98a7);
+  --line: light-dark(#d9e0e8, #27313e);
+  --flag: light-dark(#8a6508, #f0c22b); /* first-down yellow, dark enough for small text on light */
+  --flag-fill: light-dark(#e8b300, #f0c22b);
+  --scrim: light-dark(#1f6fb2, #5fa8de); /* line of scrimmage */
+  --urgent: light-dark(#b33a2b, #e0755f); /* your own calls: fade, avoid; and the live clock */
+  --good: light-dark(#1f7a48, #2e9960); /* target chips, the recommended rail */
+  --sleeper: light-dark(#7a5fd3, #9d86e8);
+  --on-accent: light-dark(#ffffff, #0f141b); /* text on --scrim and --urgent fills */
+  --on-flag: #131922; /* text on --flag-fill, both modes */
+  --shadow-color: light-dark(rgba(19, 25, 34, 0.25), rgba(0, 0, 0, 0.7));
+  --shadow:
+    0 1px 2px color-mix(in srgb, var(--shadow-color) 25%, transparent),
+    0 6px 16px -10px var(--shadow-color);
+  --radius-control: 2px; /* chips, tags, buttons, inputs */
+  --radius-box: 3px; /* panels, lists, cards */
+  --ease: 150ms ease;
+
+  --font-copy: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* The smallest type on the page: labels, tags, the pos column. Nothing goes below. */
+  --text-xs: 0.72rem;
+
+  /* Breakpoints, for reference; custom properties cannot feed media queries, so the
+   * modules repeat the values. Phone rows: 27rem. The two-column draft room: 64rem. */
+}
+
+/* A host can pin the scheme; the team-mark sheet the page emits keys off the same attribute. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}

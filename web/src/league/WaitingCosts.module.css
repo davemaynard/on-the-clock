@@ -1,0 +1,44 @@
+.scroller {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.curve {
+  width: 100%;
+  min-width: 30rem;
+  border-collapse: collapse;
+}
+
+.curve th,
+.curve td {
+  padding: 0.3rem 0.4rem;
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.curve thead th {
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.curve tbody th {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-align: left;
+}
+
+/* Each cell tints with its share of the row's best value: the heat is the story. */
+.heat {
+  display: block;
+  padding: 0.2rem 0.35rem;
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--scrim) calc(var(--fill) * 26%), transparent);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

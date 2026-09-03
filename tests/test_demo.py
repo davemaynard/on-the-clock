@@ -17,14 +17,33 @@ def test_demo_assembles_both_leagues():
     assert ppr["rounds"] and ppr["rounds"][0]["cands"]
 
 
-def test_demo_page_renders_tracker_payload():
+def payload(html: str) -> dict:
+    """The data contract the components render from, parsed back out of the page."""
+    import json
+
+    start = html.index("window.ON_THE_CLOCK = ") + len("window.ON_THE_CLOCK = ")
+    end = html.index(";</script>", start)
+    return json.loads(html[start:end].replace("<\\/", "</"))
+
+
+def test_demo_page_carries_the_shell_and_the_payload():
+    """The browser draws the board; the page is the shell, the styles, the data and the
+    bundle, inlined so the page is one request."""
     html = demo.render()
-    assert "<h1>On the Clock</h1>" in html
-    assert "window.ON_THE_CLOCK = " in html and '"live": false' in html
-    assert 'id="tab0"' in html and 'id="tab1"' in html
-    # assets are inlined, not linked: the page is one request
+    assert "<title>On the Clock &middot; draft board</title>" in html
+    assert '<div id="app"></div>' in html
     assert "<style>/* Generated from web/src" in html and ":root{" in html
-    assert "window.ON_THE_CLOCK" in html.split("<script>")[-1]
+    data = payload(html)
+    assert data["live"] is False and data["year"] >= 2026
+    assert [lg["name"] for lg in data["leagues"]] == ["Sunday Regulars", "Superflex Invitational"]
+    ppr = data["leagues"][0]
+    assert ppr["slot"] == 6 and len(ppr["picks"]) == ppr["roundsTotal"]
+    assert ppr["lineup"][0] == {"count": 1, "label": "QB"}
+    assert [c["pos"] for c in ppr["curve"]] == ["RB", "WR", "TE", "QB"]
+    assert all(len(c["values"]) == 8 for c in ppr["curve"])
+    assert len(ppr["players"]) > 200 and ppr["players"][0]["vor"] > ppr["players"][50]["vor"]
+    # the bundle is the last script, after the data it reads
+    assert "/* Generated from web/src" in html.split("<script>")[-1]
 
 
 def test_demo_marks_reach_the_page():
@@ -38,9 +57,12 @@ def test_demo_marks_reach_the_page():
     assert marked.get("Chase Brown") == "target"
     assert marked.get("Derrick Henry") == "fade"
     assert marked.get("Isiah Pacheco") == "slp"
-    html = demo.render()
-    assert '<details class="plan">' in html
-    assert "tag-target" in html
+    data = payload(demo.render())
+    ppr_payload = data["leagues"][0]
+    assert len(ppr_payload["principles"]) == 3
+    assert ppr_payload["script"][0] == {"round": "1", "pick": 6, "text": ppr["script"][0][2]}
+    chips = {p["name"]: p["mark"] for p in ppr_payload["players"] if p["mark"]}
+    assert chips["Chase Brown"] == "target" and chips["Isiah Pacheco"] == "slp"
 
 
 def test_demo_logos_come_from_the_fixture():
@@ -58,10 +80,9 @@ def test_demo_logos_come_from_the_fixture():
     assert {k for k, (_, dark) in logos.items() if dark} == {
         "DAL", "DEN", "GB", "LAR", "LV", "MIN", "NYG", "NYJ"}
     html = demo.render()
-    assert ".team-mark-DET{background-image:url(data:image/png" in html
-    assert '<i class="team-mark team-mark-DET" aria-hidden="true"></i>' in html
+    assert "[data-team=DET]{background-image:url(data:image/png" in html
     # one rule per team, not one image per row
-    assert len(re.findall(r"\.team-mark-[A-Z]+\{background-image", html)) == 32 + 2 * 8
+    assert len(re.findall(r"\[data-team=[A-Z]+\]\{background-image", html)) == 32 + 2 * 8
     # an unknown code (stubs, free agents) is a blank tile, not a crash
     assert images.logos({"FA", "?"}, cache=demo.FIXTURES / "logos", fetch=False) == {}
 

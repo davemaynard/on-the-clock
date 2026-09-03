@@ -1,0 +1,201 @@
+/* Sticky at the top of the phone; the tools bar below it reads this panel's live height
+ * from --assistant-height (written by the league panel) so it sticks just underneath. */
+.assistant {
+  composes: panel from "../styles/shared.module.css";
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.8rem 0.9rem;
+}
+
+.head {
+  composes: interactive from "../styles/shared.module.css";
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .head:hover {
+    color: var(--scrim);
+  }
+}
+
+.status {
+  margin-left: auto;
+  text-align: right;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.nextPick {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 0.9;
+}
+
+.clock {
+  composes: displayCaps from "../styles/shared.module.css";
+  font-size: 1.15rem;
+  color: var(--muted);
+}
+
+.live {
+  color: var(--urgent);
+}
+
+.draftedCount {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* The live-sync badge: a label whose colour is state, so it owns its own rule. */
+.badge {
+  margin-top: 0.2rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.badge::before {
+  content: "●";
+  margin-right: 0.3rem;
+  color: var(--muted);
+}
+
+.badge[data-state="live"] {
+  color: var(--scrim);
+}
+
+.badge[data-state="live"]::before,
+.badge[data-state="synced"]::before {
+  color: var(--scrim);
+}
+
+/* The one-line answer to "what am I shopping for right now". */
+.advice {
+  composes: label from "../styles/shared.module.css";
+}
+
+.focus {
+  color: var(--good);
+  font-weight: 700;
+}
+
+.advice:empty {
+  display: none;
+}
+
+/* The fold button: drawn like the quiet control, square, with a chevron from two borders.
+ * Its own rule because the chevron's states are transitions of their own. */
+.fold {
+  position: relative;
+  flex: none;
+  align-self: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  padding: 0;
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  transition:
+    background-color var(--ease),
+    border-color var(--ease),
+    transform var(--ease);
+}
+
+.fold:active {
+  transform: translateY(1px);
+}
+
+@media (hover: hover) {
+  .fold:hover {
+    background: var(--surface);
+    border-color: var(--muted);
+  }
+}
+
+.fold::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: translate(-50%, -30%) rotate(-135deg);
+  transition: border-color var(--ease);
+}
+
+.fold:hover::after,
+.fold:focus-visible::after {
+  border-color: var(--ink);
+}
+
+/* Folded: one bar, the 2.6rem button setting the row height. Every text block is centred
+ * in it with a line-height of 1; the copy is caps and digits, nothing descends, so the
+ * centres align optically. */
+.folded {
+  padding: 0.45rem 0.9rem;
+}
+
+.folded .fold::after {
+  transform: translate(-50%, -70%) rotate(45deg);
+}
+
+.folded .body,
+.folded .draftedCount,
+.folded .badge {
+  display: none;
+}
+
+.folded .head {
+  align-items: baseline;
+}
+
+.folded .next {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding-top: 0.55rem; /* (2.6rem button minus 1.5rem pick) / 2 */
+}
+
+.folded .nextPick {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.folded .next p,
+.folded .clock {
+  line-height: 1;
+}
+
+.folded .clock {
+  font-size: 1rem;
+}
+
+.folded .advice {
+  margin-top: 0.15rem;
+}
+
+/* In the wide draft room the rail is what sticks, not the panel alone. */
+@media (min-width: 64rem) {
+  .assistant {
+    position: static;
+  }
+}

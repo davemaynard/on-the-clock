@@ -2,7 +2,7 @@
   "name": "on-the-clock-web",
   "private": true,
   "version": "0.1.0",
-  "description": "The draft board's browser side: stylesheet and tracker, built into on_the_clock/assets/ for the Python package to inline.",
+  "description": "The draft board's browser side: Preact components with CSS modules, built by esbuild into on_the_clock/assets/ for the Python package to inline.",
   "type": "module",
   "scripts": {
     "build": "node web/build.mjs",
@@ -18,5 +18,8 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "preact": "10.29.8"
   }
 }

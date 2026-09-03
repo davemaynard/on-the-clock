@@ -1,0 +1,30 @@
+/* The name owns the leftover space and the tag never steals it: a tag that grows must not
+ * be what truncates the player you're looking for. */
+.name {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+/* A real button (drafted is a pressed state), drawn as text so the row still reads as a
+ * list. No overflow: hidden here: a flex item with clipped overflow synthesizes its
+ * baseline from the box edge instead of the text, which silently un-aligns every tag and
+ * column in the row. The row clips as the backstop, and the browser test pins that no
+ * name ever needs it. */
+.toggle {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Pressed is drafted: the name is struck through. */
+.toggle[aria-pressed="true"] {
+  text-decoration: line-through;
+}

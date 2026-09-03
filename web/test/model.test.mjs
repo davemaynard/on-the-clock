@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import {
   advice,
+  adviceText,
   assess,
   fillLineup,
   marketQueue,
@@ -9,8 +10,8 @@ import {
   openSlots,
   snakePicks,
   survives,
-} from "../src/tracker/model.js";
-import { decodeState, encodeState } from "../src/tracker/rescue.js";
+} from "../src/model/model.js";
+import { decodeState, encodeState } from "../src/model/rescue.js";
 
 // A small league: two starting QBs' worth of superflex, and a board of nine.
 const league = {
@@ -97,7 +98,7 @@ describe("roster need", () => {
     const draft = assess(league, players, state);
     assert.equal(draft.onClock, true);
     assert.equal(draft.picksAway, 0);
-    assert.equal(advice(league, draft).length > 0, true);
+    assert.notEqual(advice(league, draft), null);
   });
   test("off-board picks advance the clock", () => {
     const draft = assess(league, players, { drafted: new Set(), mine: new Set(), offBoard: 2 });
@@ -106,7 +107,7 @@ describe("roster need", () => {
   });
   test("without a slot the advice says to set one", () => {
     const noSlot = { ...league, picks: [] };
-    assert.match(advice(noSlot, assess(noSlot, players, fresh())), /Set your slot/);
+    assert.match(adviceText(advice(noSlot, assess(noSlot, players, fresh()))), /Set your slot/);
   });
 });
 
@@ -122,8 +123,8 @@ describe("advice", () => {
     const draft = assess(roomy, players, fresh());
     assert.equal(draft.forced, false);
     assert.match(
-      advice(roomy, draft),
-      /^Optimize for <b>(QB|RB|WR)<\/b>: waiting past \d+ costs|^Open slot/,
+      adviceText(advice(roomy, draft)),
+      /^Optimize for (QB|RB|WR): waiting past \d+ costs|^Open slot/,
     );
   });
   test("forced: the lineup still has holes and the picks are running out", () => {
@@ -131,7 +132,7 @@ describe("advice", () => {
     const state = { drafted: new Set([0, 1, 2, 3, 4, 5, 6]), mine: new Set(), offBoard: 3 };
     const draft = assess(league, players, state);
     assert.equal(draft.forced, true);
-    assert.match(advice(league, draft), /^Fill <b>/);
+    assert.equal(advice(league, draft).before, "Fill ");
   });
   test("endgame: only the kicker slot is open and one pick remains", () => {
     const state = withMine(0, 1, 2, 3);
@@ -139,7 +140,7 @@ describe("advice", () => {
     state.offBoard = 8; // 15 picks gone; pick 19 is the last
     const draft = assess(league, players, state);
     assert.equal(draft.endgame, true);
-    assert.equal(advice(league, draft), "Optimize for <b>K / D/ST</b>: last picks");
+    assert.equal(adviceText(advice(league, draft)), "Optimize for K / D/ST: last picks");
     assert.deepEqual(draft.ranked, [7], "only the kicker is a candidate");
     assert.equal(draft.exhausted("WR"), true);
     assert.equal(draft.exhausted("K"), false);
@@ -147,11 +148,15 @@ describe("advice", () => {
   test("starters filled: shop for depth", () => {
     const flat = { ...league, families: [], picks: snakePicks(3, 4, 6) };
     const draft = assess(flat, players, withMine(0, 1, 2, 7));
-    assert.equal(advice(flat, draft), "Optimize for <b>RB/WR depth</b>: starters filled");
+    assert.deepEqual(advice(flat, draft), {
+      before: "Optimize for ",
+      focus: "RB/WR depth",
+      after: ": starters filled",
+    });
   });
   test("starters filled but a flex open: name the family", () => {
     const draft = assess(league, players, withMine(0, 1, 2));
-    assert.match(advice(league, draft), /^Optimize for <b>FLEX<\/b>: 1 open/);
+    assert.match(adviceText(advice(league, draft)), /^Optimize for FLEX: 1 open/);
   });
 });
 

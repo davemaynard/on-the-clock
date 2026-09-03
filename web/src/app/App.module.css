@@ -1,0 +1,15 @@
+/* One column on a phone; the wide draft room gets a wider measure. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: clamp(1.25rem, 4vw, 2.5rem) clamp(1rem, 4vw, 2rem) 4rem;
+}
+
+@media (min-width: 64rem) {
+  .page {
+    max-width: 76rem;
+  }
+}

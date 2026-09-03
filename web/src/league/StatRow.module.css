@@ -1,0 +1,17 @@
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.stats b {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.lineup {
+  font-size: 0.85rem;
+}

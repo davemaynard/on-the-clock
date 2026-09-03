@@ -1,0 +1,41 @@
+.rescue {
+  composes: well from "../styles/shared.module.css";
+  padding: 0.6rem 0.8rem;
+}
+
+.rescue > * + * {
+  margin-top: 0.5rem;
+}
+
+.summary {
+  composes: summary from "../styles/shared.module.css";
+  font-size: 1.05rem;
+}
+
+.code {
+  composes: field from "../styles/shared.module.css";
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  font: 0.75rem var(--font-mono);
+}
+
+@media (pointer: coarse) {
+  .code {
+    font-size: 1rem;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.action {
+  composes: controlOnSurface from "../styles/shared.module.css";
+}
+
+.warning {
+  color: var(--urgent);
+  font-size: 0.85rem;
+}

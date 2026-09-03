@@ -8,8 +8,7 @@ board.
 **Live demo:** [davemaynard.github.io/on-the-clock](https://davemaynard.github.io/on-the-clock/)
 
 <p align="center">
-  <img src="docs/demo-phone.png" width="240" alt="The board on a phone: the draft assistant pinned above the board">
-  <img src="docs/demo-desktop.png" width="560" alt="The board on a desktop: assistant and roster on the left, the board on the right">
+  <img src="docs/demo-devices.png" width="900" alt="The board on a laptop and a phone: the draft assistant with your next pick, best available and the chance each lasts; the board beside it with position filters and a VOR or Fit score toggle">
 </p>
 
 It reads an ESPN league, computes every player's value over replacement for *that*
@@ -88,17 +87,21 @@ Private ESPN leagues need `ESPN_S2` and `ESPN_SWID` from a logged-in browser
 
 ## How it's built
 
-Python does the thinking and the page; the browser side is its own small source tree.
+Python does the thinking; the browser draws the board.
 
 - `on_the_clock/` reads ESPN, computes VOR and the cost of waiting, and renders one
-  self-contained HTML page that inlines the stylesheet, the tracker and a 32-image
-  team-mark sheet.
-- `web/src/board.css` is the stylesheet, and `web/src/tracker/` the tracker as ES
-  modules: `model.js` (the draft math, pure functions), `league.js` (state, undo,
-  wiring), `view.js` (the HTML it redraws), `live.js` (the ESPN feed), `storage.js`
-  and `rescue.js` (persistence and the rescue code).
-- `npm run build` bundles and minifies both into `on_the_clock/assets/`, which is
-  committed so installing from GitHub needs no Node. CI fails if the assets are stale.
+  self-contained HTML page: the shell, the stylesheet, a 32-image team-mark sheet, the
+  data as `window.ON_THE_CLOCK`, and the bundle that renders it.
+- `web/src/` is a Preact app, one component per piece of the page with its own CSS
+  module beside it: `app/` (masthead, league tabs, footer), `league/` (the draft room,
+  the plan rail, the pre-draft tables, and the hooks that own state), `assistant/`
+  (next pick, best available, roster), `board/` (tools, rows, the rescue code) and
+  `player/` (name, tag, team mark). `styles/` holds the tokens, the element defaults
+  and the primitives the modules extend with `composes`. `model/` is the draft math as
+  pure functions, tested on their own.
+- `npm run build` is esbuild alone: JSX and CSS modules are built in, so the whole
+  thing bundles into `on_the_clock/assets/`, which is committed so installing from
+  GitHub needs no Node. CI fails if the assets are stale.
 
 ## Development
 
@@ -106,12 +109,14 @@ Python does the thinking and the page; the browser side is its own small source 
 uv sync && npm install
 uv run pytest                  # the Python side; renders the demo fixture end to end
 uv run ruff check .
-npm test                       # the draft model, and the rendered demo in Chrome at
-                               # phone, tablet and desktop widths, light and dark
+npm test                       # the draft model and the live-feed merge, then the
+                               # rendered demo in Chrome at phone, tablet and desktop
+                               # widths, light and dark: geometry and computed style
 npm run check                  # Biome: format and lint web/
 npm run build                  # web/src -> on_the_clock/assets/ (commit the result)
-uv run on-the-clock demo --out docs/index.html && node web/screenshots.mjs
-                               # refresh the live demo page and the README screenshots
+uv run on-the-clock demo --out docs/index.html
+uv run on-the-clock demo --out out/demo.html && node web/screenshots.mjs
+                               # refresh the live demo page, then the README images
 ```
 
 ## Status

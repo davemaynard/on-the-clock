@@ -1,0 +1,128 @@
+/* Sticks just below the assistant, whose live height the league panel writes into
+ * --assistant-height. At top: 0 it pinned underneath the panel, unreachable exactly when
+ * you scroll mid-draft. */
+.tools {
+  position: sticky;
+  top: var(--assistant-height, 0px);
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  background: var(--ground);
+}
+
+.search {
+  composes: field from "../styles/shared.module.css";
+  flex: 1 1 12rem;
+  min-width: 0;
+  padding: 0.4rem 0.6rem;
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+@media (pointer: coarse) {
+  .search {
+    font-size: 1rem;
+  }
+}
+
+.filters {
+  display: flex;
+  flex: 1 1 100%;
+  min-width: 0;
+  gap: 0.25rem;
+}
+
+.filter {
+  composes: selectable from "../styles/shared.module.css";
+  flex: 1;
+  min-width: 0;
+  padding: 0.3rem 0;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+/* Endgame: a position whose slots are all filled, and no flex can take it. */
+.muted {
+  opacity: 0.45;
+}
+
+.toggle {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Two buttons sharing one border: a segmented control. Drawn like a selectable chip but
+ * with the radius on the group, so it is its own rule rather than a composition. */
+.modes {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+
+.mode {
+  composes: interactive displayCaps from "../styles/shared.module.css";
+  padding: 0.3rem 0.6rem;
+  background: var(--surface);
+  color: var(--muted);
+  border: 0;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.mode + .mode {
+  border-left: 1px solid var(--line);
+}
+
+.mode[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--ground);
+}
+
+@media (hover: hover) {
+  .mode:hover:not([aria-pressed="true"]) {
+    color: var(--ink);
+  }
+}
+
+.undo {
+  composes: control from "../styles/shared.module.css";
+}
+
+@media (min-width: 64rem) {
+  .tools {
+    top: 0;
+  }
+}
+
+/* Draft night is a thumb on a phone: real tap targets. */
+@media (pointer: coarse) {
+  .filter {
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .mode {
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .toggle {
+    min-height: 2.2rem;
+  }
+
+  .toggle input {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}

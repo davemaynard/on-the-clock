@@ -1,0 +1,143 @@
+/* Each row is its own grid, so auto tracks would size per row and the pos and team
+ * columns would wander. Fixed tracks make every row share one set of column edges, like
+ * a table: pos fits "DST18", team fits any three-letter code. */
+.row {
+  composes: interactive from "../styles/shared.module.css";
+  display: grid;
+  grid-template-columns: 1.9rem 1fr 2.9rem 2.1rem 2.6rem;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.42rem 0.5rem;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row[hidden] {
+  display: none;
+}
+
+.pos,
+.team {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.score {
+  composes: numeral from "../styles/shared.module.css";
+  font-weight: 600;
+  text-align: right;
+  cursor: pointer;
+}
+
+.dim {
+  color: var(--muted);
+}
+
+/* Fit mode: the number is roster fit, and turns green so the mode is legible. */
+.fit {
+  color: var(--good);
+}
+
+.why {
+  display: block;
+  grid-column: 2 / -1;
+  overflow-wrap: anywhere;
+  font-family: var(--font-copy);
+  font-size: var(--text-xs);
+  line-height: 1.35;
+  white-space: normal;
+  color: var(--muted);
+}
+
+/* Row states. Drafted strikes the name; exhausted (endgame, position filled and no flex
+ * can take it) only dims, so the two read as different states. */
+.drafted {
+  opacity: 0.4;
+}
+
+.drafted .name {
+  color: var(--muted);
+}
+
+.exhausted {
+  opacity: 0.35;
+}
+
+.mine {
+  background: color-mix(in srgb, var(--scrim) 14%, transparent);
+}
+
+.mine .claim {
+  background: var(--scrim);
+  color: var(--on-accent);
+  border-color: var(--scrim);
+}
+
+.recommended {
+  box-shadow: inset 3px 0 0 var(--good);
+}
+
+.recommended .name {
+  font-weight: 600;
+}
+
+.streamer .name {
+  color: var(--muted);
+}
+
+@media (hover: hover) {
+  .row:hover:not(.drafted) {
+    background: color-mix(in srgb, var(--scrim) 7%, transparent);
+  }
+
+  .mine:hover {
+    background: color-mix(in srgb, var(--scrim) 20%, transparent);
+  }
+
+  .mine .claim:hover {
+    background: var(--scrim);
+    color: var(--on-accent);
+    border-color: var(--scrim);
+  }
+}
+
+/* iPhone-width rows, measured on a 390px viewport. The fixed tracks and the button leave
+ * about 190px for a name that needs about 142px, so the row can afford real gutters.
+ * Three groups read left to right: who (name and tag), what (pos), worth (VOR). Tight
+ * inside a group, generous between them. */
+@media (max-width: 27rem) {
+  .row {
+    grid-template-columns: 1.9rem 1fr 2.6rem 2.6rem;
+  }
+
+  /* Team is the one datum you already know at a glance, and the row cannot seat five
+   * columns plus a tag without truncating the name. It stays on every wider screen. */
+  .team {
+    display: none;
+  }
+
+  .pos,
+  .score {
+    margin-left: 0.3rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .row {
+    grid-template-columns: 1.9rem 1fr 3.2rem 2.6rem 3rem;
+    gap: 0.75rem;
+  }
+}
+
+@media (pointer: coarse) {
+  .row {
+    padding: 0.6rem 0.5rem;
+  }
+}

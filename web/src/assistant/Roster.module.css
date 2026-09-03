@@ -1,0 +1,53 @@
+.roster {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.3rem;
+  margin: 0;
+}
+
+.slot {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.28rem 0.45rem;
+  background: var(--sunk);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font-size: 0.88rem;
+}
+
+.filled {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+.bench {
+  grid-column: 1 / -1;
+}
+
+.label {
+  composes: displayCaps from "../styles/shared.module.css";
+  min-width: 2.6rem;
+  color: var(--muted);
+}
+
+.player {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.open {
+  color: var(--muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 64rem) {
+  .roster {
+    grid-template-columns: 1fr 1fr;
+  }
+}

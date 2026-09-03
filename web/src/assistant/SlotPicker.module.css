@@ -1,0 +1,23 @@
+.picker {
+  composes: displayCaps from "../styles/shared.module.css";
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+}
+
+.select {
+  padding: 0.25rem 0.4rem;
+  background: var(--sunk);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
+
+.note {
+  max-width: 52ch;
+  color: var(--muted);
+  font-size: 0.85rem;
+}

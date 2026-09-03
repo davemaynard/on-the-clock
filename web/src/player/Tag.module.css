@@ -1,0 +1,58 @@
+/* Tags: a player's status and your own calls. Every kind composes the base and changes
+ * only its colour, so the row's geometry never depends on which tag it carries. */
+
+/* The label baseline-aligns with the row, but the filled box is what the eye judges, and
+ * an all-caps label has no descenders: a tight line-height plus padding weighted to the
+ * top centres the box on the cap band. */
+.tag {
+  flex: none;
+  padding: 0.25em 0.3rem;
+  background: var(--urgent);
+  color: var(--on-accent);
+  border-radius: var(--radius-control);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* A status (out, doubtful, IR) is information, not a call: quiet, so red stays yours. */
+.out {
+  composes: tag;
+  background: var(--sunk);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.target {
+  composes: tag;
+  background: var(--good);
+}
+
+.fade {
+  composes: tag;
+}
+
+.alert {
+  composes: tag;
+  background: var(--flag-fill);
+  color: var(--on-flag);
+}
+
+.slp {
+  composes: tag;
+  background: var(--sleeper);
+}
+
+/* Reprice verdicts: a hard no reads urgent, a price-conditional one reads calm. */
+.avoid {
+  composes: tag;
+  outline: 1px solid var(--ink);
+}
+
+.stash {
+  composes: tag;
+  background: var(--scrim);
+}

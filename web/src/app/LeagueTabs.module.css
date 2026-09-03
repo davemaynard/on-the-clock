@@ -1,0 +1,18 @@
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tab {
+  composes: selectable from "../styles/shared.module.css";
+  padding: 0.45rem 1rem;
+  box-shadow: var(--shadow);
+  font-size: 1.05rem;
+}
+
+@media print {
+  .tabs {
+    display: none;
+  }
+}

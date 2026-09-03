@@ -1,0 +1,94 @@
+.plan {
+  composes: panel from "../styles/shared.module.css";
+}
+
+.summary {
+  composes: summary from "../styles/shared.module.css";
+  padding: 0.65rem 1rem;
+  font-size: 1.08rem;
+}
+
+.principles {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0.1rem 1rem 0.6rem 2.1rem;
+  color: var(--muted);
+  font-size: 0.87rem;
+}
+
+/* The pick script is one grid, and each step spans it with subgrid, so the round and
+ * pick columns are exactly as wide as their widest entry and the text starts on one
+ * line down the whole list. */
+.script {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 0.35rem 0.6rem;
+  margin: 0;
+  padding: 0.6rem 1rem 0.7rem;
+  border-top: 1px dashed var(--line);
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: baseline;
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.round {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pick {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+/* The legend: one tag per line with its meaning beside it, never inline in a sentence. */
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem 0.8rem;
+  border-top: 1px dashed var(--line);
+}
+
+.legendList {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.4rem 0.7rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.legendRow {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: baseline;
+}
+
+.legendRow dt {
+  display: flex;
+}
+
+.legendRow dd {
+  margin: 0;
+}
+
+.legendNote {
+  color: var(--muted);
+  font-size: 0.78rem;
+}

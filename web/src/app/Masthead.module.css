@@ -1,0 +1,21 @@
+.masthead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 3px solid var(--ink);
+}
+
+/* Wider-tracked than the label primitive, in the flag colour: the one line of yellow. */
+.kicker {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--flag);
+}
+
+.subtitle {
+  composes: lede from "../styles/shared.module.css";
+}

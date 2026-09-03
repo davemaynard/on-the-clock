@@ -1,0 +1,12 @@
+/* One em square that sits on the text line. The module carries no image: the page emits
+ * a [data-team] rule per club with the bytes, so an unknown code (a stub, a free agent)
+ * is a blank tile and the names still align. */
+.mark {
+  display: inline-block;
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  margin-right: 0.35em;
+  vertical-align: -0.22em;
+  background: center / contain no-repeat;
+}

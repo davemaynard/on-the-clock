@@ -1,0 +1,81 @@
+.candidates {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.candidate {
+  composes: interactive from "../styles/shared.module.css";
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 1.7rem 2.6rem 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.22rem 0.35rem;
+  border-radius: var(--radius-control);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .candidate:hover {
+    background: color-mix(in srgb, var(--scrim) 7%, transparent);
+  }
+}
+
+/* The bar behind the row is the chance he lasts: blue when likely, yellow when it's a
+ * coin flip, red when he's probably gone. */
+.bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: -1;
+  width: calc(var(--chance) * 100%);
+  border-radius: var(--radius-control);
+  background: var(--scrim);
+  opacity: 0.16;
+}
+
+.maybe .bar {
+  background: var(--flag-fill);
+  opacity: 0.22;
+}
+
+.unlikely .bar {
+  background: var(--urgent);
+  opacity: 0.16;
+}
+
+.chance {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--muted);
+}
+
+.unlikely .chance {
+  color: var(--urgent);
+}
+
+.posRank {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.score {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+/* Fit mode: the number is roster fit, and turns green so the mode is legible. */
+.fit {
+  color: var(--good);
+}
