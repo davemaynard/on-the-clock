@@ -5,7 +5,12 @@ its scoring, its lineup (superflex counts, flex counts, all of it), the number o
 teams, your pick slot, and then recalculates on your phone as players come off the
 board.
 
-![The board on draft day](docs/demo-desktop.png)
+**Live demo:** [davemaynard.github.io/on-the-clock](https://davemaynard.github.io/on-the-clock/)
+
+<p align="center">
+  <img src="docs/demo-phone.png" width="240" alt="The board on a phone: the draft assistant pinned above the board">
+  <img src="docs/demo-desktop.png" width="560" alt="The board on a desktop: assistant and roster on the left, the board on the right">
+</p>
 
 It reads an ESPN league, computes every player's value over replacement for *that*
 roster shape, prices the cost of waiting a round at each position from public ADP,
@@ -41,7 +46,8 @@ uv run on-the-clock demo --serve
 Writes `out/demo.html` from a bundled fixture (two invented leagues, a 12-team PPR
 room and a superflex room, over a real late-August snapshot of ESPN projections and
 FFC ADP) and serves it on <http://localhost:8777>. Team names are made up; the
-players are real.
+players are real. The team marks and the projection snapshot are ESPN's, cached for
+the demo only, and are not covered by this repo's MIT license.
 
 ## Use it with your league
 
@@ -59,10 +65,9 @@ my-draft/
 ```sh
 uv tool install git+https://github.com/davemaynard/on-the-clock   # puts `on-the-clock` on PATH
 
-cd my-draft
-cp /path/to/on-the-clock/.env.example .env               # fill in the cookies
-cp /path/to/on-the-clock/leagues.example.toml leagues.toml
-cp /path/to/on-the-clock/marks.example.toml marks.toml   # optional
+mkdir my-draft && cd my-draft
+# Create .env, leagues.toml and (optionally) marks.toml from the three example files
+# at the top of this repo; each is a few commented lines.
 
 on-the-clock adp                # pull FFC ADP (ppr + 2qb)
 on-the-clock build              # pull ESPN, build out/board.html
@@ -105,11 +110,14 @@ npm test                       # the draft model, and the rendered demo in Chrom
                                # phone, tablet and desktop widths, light and dark
 npm run check                  # Biome: format and lint web/
 npm run build                  # web/src -> on_the_clock/assets/ (commit the result)
+uv run on-the-clock demo --out docs/index.html && node web/screenshots.mjs
+                               # refresh the live demo page and the README screenshots
 ```
 
 ## Status
 
-Working and used for real drafts. Phone-first, with a two-column draft room from
+Working and used for real drafts. Carved out of a private repo in September 2026 with
+fresh history; the private version ran the 2026 drafts. Phone-first, with a two-column draft room from
 64rem up (assistant and roster pinned on the left, the board on the right), light
 and dark, team marks inlined from a 32-image sheet so the page stays one request.
 Player headshots are deliberately left out: 260 inlined portraits would triple the

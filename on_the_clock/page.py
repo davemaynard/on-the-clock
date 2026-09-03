@@ -1,4 +1,4 @@
-"""Generate the draft-day cheat sheet — one page, both leagues, read on a phone.
+"""Generate the draft board: one page, every league in leagues.toml, read on a phone.
 
 Everything here is derived, not typed, so this can be re-run the morning of a draft
 and be current. The page answers the three questions you actually get asked by the
@@ -15,10 +15,7 @@ import json
 from datetime import date
 from pathlib import Path
 
-from . import board as bb
-from . import config, images
-from . import marks as st
-from . import plan as dp
+from . import board, config, images, marks, plan
 
 POS_SHOWN = ("RB", "WR", "TE", "QB")
 DEPTH = 200  # players carried into the tracker board
@@ -26,9 +23,9 @@ DEPTH = 200  # players carried into the tracker board
 
 def gather(cfg: dict, year: int, cookies: dict) -> dict:
     """Fetch one league from ESPN and assemble its board."""
-    league = bb.fetch_league(cfg["id"], year, cookies)
-    rank_type = "SUPERFLEX" if bb.is_superflex(league["settings"]) else "PPR"
-    entries = bb.fetch_players(cfg["id"], year, cookies, 500, rank_type)
+    league = board.fetch_league(cfg["id"], year, cookies)
+    rank_type = "SUPERFLEX" if board.is_superflex(league["settings"]) else "PPR"
+    entries = board.fetch_players(cfg["id"], year, cookies, 500, rank_type)
     return assemble(cfg, league, entries, year)
 
 
@@ -39,27 +36,29 @@ def assemble(cfg: dict, league: dict, entries: list[dict], year: int,
     data/raw/ for the league's format; `marks_path` defaults to marks.toml in
     the working directory. The demo passes its own for both."""
     settings = league["settings"]
-    rank_type = "SUPERFLEX" if bb.is_superflex(settings) else "PPR"
-    players = bb.extract(entries, year, rank_type)
+    rank_type = "SUPERFLEX" if board.is_superflex(settings) else "PPR"
+    players = board.extract(entries, year, rank_type)
     # Names ESPN carries without a projection (Holani-class): keep enough of
     # the raw fetch to give a marked stub its pos/team/espn_id.
     raw: dict[str, dict] = {}
     for e in entries:
         pl = e["player"]
-        raw.setdefault(bb.norm(pl["fullName"]), {
+        raw.setdefault(board.norm(pl["fullName"]), {
             "espn_id": pl["id"],
-            "pos": bb.POS.get(pl.get("defaultPositionId"), ""),
-            "team": bb.PRO_TEAMS.get(pl.get("proTeamId"), "?"),
+            "pos": board.POS.get(pl.get("defaultPositionId"), ""),
+            "team": board.PRO_TEAMS.get(pl.get("proTeamId"), "?"),
             "status": pl.get("injuryStatus", "ACTIVE"),
         })
 
     # The ONE row list (skill + K/DST + marked stubs, news-repriced, sorted
     # by adjusted VOR) that the HTML board, the payload, and the CSV all
     # render from. Marks are joined inside final_rows, suffix-tolerantly.
-    mk = st.marks(cfg["id"], marks_path)
-    all_rows, levels, detail = bb.final_rows(players, settings, mk, st.reprice(marks_path), raw)
+    calls = marks.marks(cfg["id"], marks_path)
+    all_rows, levels, detail = board.final_rows(
+        players, settings, calls, marks.reprice(marks_path), raw
+    )
     if spread is None:
-        spread = dp.load_adp_spread(bb.adp_format(settings))
+        spread = plan.load_adp_spread(board.adp_format(settings))
 
     teams = settings["size"]
     slot_counts = settings["rosterSettings"]["lineupSlotCounts"]
@@ -67,41 +66,41 @@ def assemble(cfg: dict, league: dict, entries: list[dict], year: int,
     rounds_total = sum(v for k, v in slot_counts.items() if int(k) not in (21, 24))
     # Your team: typed in leagues.toml (`team = 6`) or, for a private league,
     # found by matching the SWID cookie against team owners.
-    team_id = cfg.get("team") or bb.my_team_id(league)
+    team_id = cfg.get("team") or board.my_team_id(league)
     slot = cfg.get("slot")
 
     for p in all_rows:
-        adp, sd = spread.get(p["key"], (None, dp.DEFAULT_STDEV))
+        adp, sd = spread.get(p["key"], (None, plan.DEFAULT_STDEV))
         p["consensus"] = adp
         p["centre"] = p["espn_adp"] or adp
         p["sd"] = sd
 
-    ranked = [p for p in all_rows if not p.get("stub") and p["pos"] not in bb.STREAMED]
+    ranked = [p for p in all_rows if not p.get("stub") and p["pos"] not in board.STREAMED]
 
-    # Availability math keeps its ADP guard — a player the market never
+    # Availability math keeps its ADP guard: a player the market never
     # drafts has no curve to model.
     pool = [p for p in ranked if p["centre"]]
     # No slot yet (order unpublished): no pick ladder to precompute. The tracker
     # builds one client-side the moment the slot is known.
-    picks = dp.snake_picks(slot, teams, rounds_total) if slot else []
-    curve = dp.pick_curve(pool, picks) if picks else {}
+    picks = plan.snake_picks(slot, teams, rounds_total) if slot else []
+    curve = plan.pick_curve(pool, picks) if picks else {}
 
     rounds = []
     for i, pick in enumerate(picks[:7]):
         nxt = picks[i + 1] if i + 1 < len(picks) else None
         cands = [
-            (dp.p_available(p["centre"], p["sd"], pick), p)
+            (plan.p_available(p["centre"], p["sd"], pick), p)
             for p in pool
-            if dp.p_available(p["centre"], p["sd"], pick) >= 0.05
+            if plan.p_available(p["centre"], p["sd"], pick) >= 0.05
         ]
         cands.sort(key=lambda t: -t[1]["vor"])
         top = cands[:7]
         gone = (
-            [p for _, p in top if dp.p_available(p["centre"], p["sd"], nxt) < 0.25]
+            [p for _, p in top if plan.p_available(p["centre"], p["sd"], nxt) < 0.25]
             if nxt else []
         )
         # Which position loses the most between this pick and the next? Comparing
-        # drop-offs is the right question — if you'll roster both positions anyway,
+        # drop-offs is the right question: if you'll roster both positions anyway,
         # take the one that erodes faster. But it only yields advice when one
         # position actually wins: a 23-vs-23 tie was rendering as a confident
         # "take QB here", which is a rounding artefact wearing a recommendation.
@@ -118,44 +117,44 @@ def assemble(cfg: dict, league: dict, entries: list[dict], year: int,
 
     # Board depth scales with format: DEPTH skill rows as the base, and in a
     # superflex room every QB through QB40 rides along even from outside the
-    # slice — backup QBs are real inventory there (~26 went in one 12-team superflex draft).
+    # slice: backup QBs are real inventory there (~26 went in one 12-team superflex draft).
     # Appending preserves VOR order: anything past DEPTH ranks below the cut.
     # Marked names with a projection below the cut (Holani-class) ride along
-    # too — the board must be the superset of the marks layer, whether the
+    # too: the board must be the superset of the marks layer, whether the
     # name has an ESPN projection or not.
-    sflex = bb.is_superflex(settings)
-    board = ranked[:DEPTH] + [
+    sflex = board.is_superflex(settings)
+    depth = ranked[:DEPTH] + [
         p for p in ranked[DEPTH:]
         if p["mark"] or (sflex and p["pos"] == "QB" and p["pos_rank"] <= 40)
     ]
     # All fetched K/DST with projections, real VOR (replacement = the
-    # (teams+1)th unit), no ADP filter and no cap — plus the marked stubs.
-    streamers = [p for p in all_rows if not p.get("stub") and p["pos"] in bb.STREAMED]
+    # (teams+1)th unit), no ADP filter and no cap: plus the marked stubs.
+    streamers = [p for p in all_rows if not p.get("stub") and p["pos"] in board.STREAMED]
     stubs = [p for p in all_rows if p.get("stub")]
-    rows = board + streamers + stubs
+    rows = depth + streamers + stubs
 
-    hurt = [p for p in ranked[:150] if p["status"] in bb.ALARMING]
+    hurt = [p for p in ranked[:150] if p["status"] in board.ALARMING]
     required = {}
     for slot_id, count in slot_counts.items():
-        pos = bb.SLOT_POS.get(int(slot_id))
+        pos = board.SLOT_POS.get(int(slot_id))
         if pos and count:
             required[pos] = required.get(pos, 0) + count
     return {
         "league_id": cfg["id"],
         "team": team_id,
-        # Everything rendered — HTML board, tracker payload, CSV — walks this
+        # Everything rendered: HTML board, tracker payload, CSV: walks this
         # one list in this one order. Nothing may bypass it.
         "rows": rows,
         "required": required,
-        # Flex-family slots per team, most-constrained first (FLEX before OP) —
+        # Flex-family slots per team, most-constrained first (FLEX before OP) ,
         # the tracker fills and prices them in this order.
         "families": detail["families"],
         "flex": sum(f["count"] for f in detail["families"]),
         "name": settings.get("name", cfg["id"]),
         "teams": teams, "slot": slot, "rounds_total": rounds_total,
         "picks": picks, "curve": curve, "rounds": rounds, "hurt": hurt,
-        "principles": st.principles(cfg["id"], marks_path),
-        "script": st.script(cfg["id"], marks_path),
+        "principles": marks.principles(cfg["id"], marks_path),
+        "script": marks.script(cfg["id"], marks_path),
         "levels": levels, "taken": detail["starters_taken"],
         "bench": slot_counts.get("20", 0),
     }
@@ -210,20 +209,20 @@ def render_league(d: dict, idx: int) -> str:
         )
         rows.append(f'<tr><th scope="row">{pos}</th>{cells}</tr>')
 
-    board = []
+    board_rows = []
     for i, pl in enumerate(d["rows"]):
         # Status and verdict chips together ("out" + "do not draft") say one
         # thing twice and cost the name its room. The verdict is the stronger
-        # of the two — it tells you what to DO — so it stands alone.
+        # of the two: it tells you what to DO: so it stands alone.
         flag = (
             f'<span class="tag tag-out">'
             f'{esc(STATUS_LABEL.get(pl["status"], pl["status"].title()))}</span>'
-            if pl["status"] in bb.ALARMING and not pl.get("verdict") else ""
+            if pl["status"] in board.ALARMING and not pl.get("verdict") else ""
         )
         why = ""
         if pl.get("mark"):
             if pl.get("verdict"):
-                # The chip IS the verdict — "avoid", "stash 160+" — not the
+                # The chip IS the verdict: "avoid", "stash 160+": not the
                 # generic "news" word that only raises the question.
                 cls = ("tag-avoid" if pl["verdict"].startswith(("AVOID", "DO NOT"))
                        else "tag-stash")
@@ -234,7 +233,7 @@ def render_league(d: dict, idx: int) -> str:
             else:
                 word = "news" if pl["mark"] == "alert" else pl["mark"]
                 flag += f'<span class="tag tag-{pl["mark"]}">{word}</span>'
-            # The chip carries the verdict, the why-line carries the reason —
+            # The chip carries the verdict, the why-line carries the reason ,
             # printing the verdict in both is the "too much metadata" a phone
             # row can't afford. Full wording rides along as the chip's title.
             text = pl["why"]
@@ -246,13 +245,15 @@ def render_league(d: dict, idx: int) -> str:
             # beside it cost a third of the row's width to say what the chip and
             # the why-line already say; it lives on in the CSV's Proj column.
             vor = f'<span class="row-vor" title="Tap: VOR / fit score">{pl["vor"]:.0f}</span>'
-        board.append(
-            f'<li class="row{" is-streamer" if pl["pos"] in bb.STREAMED else ""}" data-index="{i}">'
+        board_rows.append(
+            f'<li class="row{" is-streamer" if pl["pos"] in board.STREAMED else ""}"'
+            f' data-index="{i}">'
             f'<button class="mine-button" type="button" '
             f'aria-label="Mark {esc(pl["name"])} as mine">+</button>'
             f'<span class="row-name">'
+            f'<button class="row-toggle" type="button" aria-pressed="false">'
             f'<i class="team-mark team-mark-{esc(pl["team"])}" aria-hidden="true"></i>'
-            f'<span class="row-player">{esc(pl["name"])}</span>'
+            f'{esc(pl["name"])}</button>'
             f"{flag}</span>"
             f'<span class="row-pos">{esc(pl["pos"])}{pl["pos_rank"]}</span>'
             f'<span class="row-team">{esc(pl["team"])}</span>'
@@ -276,7 +277,7 @@ def render_league(d: dict, idx: int) -> str:
         f'data-pos="{q}">{q}</button>'
         for q in ("ALL", "QB", "RB", "WR", "TE", "FLX", "K", "DST")
     )
-    plan = ""
+    plan_html = ""
     if d["principles"]:
         prins = "".join(f"<li>{esc(x)}</li>" for x in d["principles"])
         script = "".join(
@@ -284,7 +285,7 @@ def render_league(d: dict, idx: int) -> str:
             f'<span class="pick">@{pk}</span><span>{esc(txt)}</span></li>'
             for r, pk, txt in d["script"]
         )
-        plan = f"""
+        plan_html = f"""
   <details class="plan">
     <summary>The plan: thesis and pick script</summary>
     <ul class="plan-principles">{prins}</ul>
@@ -344,7 +345,7 @@ def render_league(d: dict, idx: int) -> str:
     <span><b>{d["bench"]}</b> bench</span>
     <span class="lineup-desc">{lineup_desc}</span>
   </p>
-  {plan}
+  {plan_html}
 
   <div class="rail-sticky">
   <div class="assistant">
@@ -374,7 +375,7 @@ so the clock stays right">
         <span class="offboard-count" aria-live="polite"></span>
         <button class="undo" type="button" disabled>Undo</button>
       </div>
-      <p class="label">Best available &middot; chance he lasts to your pick</p>
+      <p class="label">Best available &middot; chance he lasts</p>
       <ol class="candidates"></ol>
       <div class="leaders"></div>
     </div>
@@ -397,7 +398,7 @@ so the clock stays right">
     <label class="toggle"><input class="hide-drafted" type="checkbox"> Hide drafted</label>
     <button class="undo" type="button" disabled>Undo</button>
   </div>
-  <ol class="board-list">{"".join(board)}</ol>
+  <ol class="board-list">{"".join(board_rows)}</ol>
 
   <details class="rescue">
     <summary>Save or restore this draft</summary>
@@ -460,7 +461,7 @@ def logo_css(logos: dict[str, tuple[str, str]]) -> str:
 
 
 def _render(data: list[dict], live: bool, logos: dict[str, tuple[str, str]] | None = None) -> str:
-    """Assemble the page. `live` arms the ESPN poller — only the local server can
+    """Assemble the page. `live` arms the ESPN poller: only the local server can
     serve that, because a published artifact's CSP cannot reach ESPN at all.
     `logos` is the team -> data URI sheet from images.logos(); None renders
     blank tiles."""
@@ -501,14 +502,14 @@ def _render(data: list[dict], live: bool, logos: dict[str, tuple[str, str]] | No
                         "vor": round(pl["vor"], 1) if pl["vor"] is not None else 0,
                         "adp": round(pl["centre"], 2) if pl["centre"] else 999,
                         "espnId": pl["espn_id"],
-                        "streamer": pl["pos"] in bb.STREAMED,
+                        "streamer": pl["pos"] in board.STREAMED,
                         "mark": pl.get("mark", ""),
                         "why": pl.get("why", ""),
                         "proj": pl["proj"],
                         "adjProj": pl["adj_proj"],
                         "verdict": pl.get("verdict", ""),
                         "stub": bool(pl.get("stub")),
-                        "out": pl["status"] in bb.ALARMING,
+                        "out": pl["status"] in board.ALARMING,
                     }
                     for pl in d["rows"]
                 ],
@@ -517,7 +518,11 @@ def _render(data: list[dict], live: bool, logos: dict[str, tuple[str, str]] | No
         ],
     }
 
-    page = f"""<meta charset="utf-8">
+    # A "</" inside the JSON (a name, a why-line) would end the script element early.
+    payload_json = json.dumps(payload).replace("</", "<\\/")
+    page = f"""<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
 <title>On the Clock &middot; draft board</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -525,7 +530,7 @@ def _render(data: list[dict], live: bool, logos: dict[str, tuple[str, str]] | No
 <link rel="stylesheet" href="{FONTS}">
 <style>{asset("board.css")}</style>
 {logo_css(logos or {})}
-<div class="page">
+<main class="page">
   <header class="masthead">
     <p class="kicker">{today.year} draft day &middot; built {today.isoformat()}</p>
     <h1>On the Clock</h1>
@@ -556,9 +561,10 @@ def _render(data: list[dict], live: bool, logos: dict[str, tuple[str, str]] | No
     browser only; nothing is shared or uploaded. Rebuild the board the morning of
     each draft; August boards move weekly.</p>
   </footer>
-</div>
-<script>window.ON_THE_CLOCK = {json.dumps(payload)};</script>
+</main>
+<script>window.ON_THE_CLOCK = {payload_json};</script>
 <script>{asset("tracker.js")}</script>
+</html>
 """
     return page
 
@@ -581,7 +587,7 @@ def render_page(data: list[dict], live: bool = False,
 def write_csv(data: list[dict]) -> None:
     """Offline fallback: the same board, importable into Sheets, in case the draft
     room has no usable signal. Walks the identical d["rows"] the HTML renders,
-    in the identical order — the CSV must never be a subset of the live product.
+    in the identical order: the CSV must never be a subset of the live product.
     K/DST rows carry real Proj/VOR; stub rows carry the chip and thesis with
     blank numbers."""
     for d in data:

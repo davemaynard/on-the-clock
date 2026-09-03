@@ -1,7 +1,7 @@
 """Pull an ESPN fantasy league's real settings into a readable settings sheet.
 
 ESPN's read API returns the league's actual scoring table, roster slots, and draft
-config — which beats retyping a settings screen and beats guessing. Private leagues
+config: which beats retyping a settings screen and beats guessing. Private leagues
 need two cookies from a logged-in browser session:
 
     espn_s2   long URL-encoded blob
@@ -43,7 +43,7 @@ SLOTS = {
 }
 
 # ESPN stat ids. Base map from the espn-api project; ids 8/117/198 are not in that
-# map and were identified empirically against ESPN's own projected stat lines —
+# map and were identified empirically against ESPN's own projected stat lines ,
 # statId 8 is passing yards floored into 25-yard chunks (Josh Allen: 3946.4 yards
 # -> 8 = 157.0). A league uses either statId 3 (points per passing yard) or
 # statId 8 (points per 25 passing yards), not both.
@@ -89,7 +89,7 @@ STATS = {
     205: "DST 2PT return", 206: "DST 2PT return",
 }
 
-# pointsOverrides keys are ESPN position ids — a rule can score differently per position.
+# pointsOverrides keys are ESPN position ids: a rule can score differently per position.
 POSITIONS = {1: "QB", 2: "RB", 3: "WR", 4: "TE", 5: "K", 16: "D/ST"}
 
 def fetch(league_id: str, year: int, s2: str | None, swid: str | None) -> dict:
@@ -107,7 +107,7 @@ def fetch(league_id: str, year: int, s2: str | None, swid: str | None) -> dict:
     )
     if r.status_code == 401:
         sys.exit(
-            "401 from ESPN — this league is private and the cookies were missing or stale.\n"
+            "401 from ESPN: this league is private and the cookies were missing or stale.\n"
             "Set ESPN_S2 and ESPN_SWID in .env (SWID keeps its braces)."
         )
     r.raise_for_status()
@@ -127,7 +127,7 @@ def render(league: dict) -> tuple[str, list[str]]:
     lines += [
         f"- **Platform:** ESPN (league {league.get('id')}, {league.get('seasonId')})",
         f"- **Teams:** {size}",
-        f"- **Draft:** {draft.get('type', '?')} — order type {draft.get('orderType', '?')}"
+        f"- **Draft:** {draft.get('type', '?')}: order type {draft.get('orderType', '?')}"
         f"{', ' + str(draft.get('date')) if draft.get('date') else ''}",
         f"- **Keepers:** {'yes' if draft.get('keeperCount') else 'none'}"
         f"{' (' + str(draft.get('keeperCount')) + ')' if draft.get('keeperCount') else ''}",
@@ -164,7 +164,7 @@ def render(league: dict) -> tuple[str, list[str]]:
             unmapped.append(f"statId {stat_id} = {pts}")
         if overrides:
             # A base of 0 with a single position override means the rule only
-            # applies to that position — render it that way instead of "0.0".
+            # applies to that position: render it that way instead of "0.0".
             parts = [f"{POSITIONS.get(int(k), k)} {v}" for k, v in sorted(overrides.items())]
             shown = ", ".join(parts) if not pts else f"{pts} (" + ", ".join(parts) + ")"
         else:
@@ -183,7 +183,7 @@ def render(league: dict) -> tuple[str, list[str]]:
         "",
         "## What the scoring actually rewards",
         "",
-        "<One line on where this league diverges from generic PPR — that's the whole edge.>",
+        "<One line on where this league diverges from generic PPR: that's the whole edge.>",
         "",
         "## The other managers",
         "",

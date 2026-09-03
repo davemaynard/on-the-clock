@@ -3,7 +3,7 @@
 Nothing personal is baked into the package. Each league you draft in gets a
 folder (or just your repo root) holding:
 
-    .env            ESPN_S2 / ESPN_SWID — the private cookies (never committed)
+    .env            ESPN_S2 / ESPN_SWID: the private cookies (never committed)
     leagues.toml    which ESPN leagues to build boards for, and your draft slot
     marks.toml      optional: your own targets / fades / alerts / repricing
     data/raw/       ADP snapshots the availability model reads (`on-the-clock adp`)
@@ -61,7 +61,7 @@ def require_cookies() -> dict[str, str]:
     c = cookies()
     if not c["espn_s2"] or not c["SWID"]:
         raise SystemExit(
-            "ESPN_S2 / ESPN_SWID missing — put them in .env (see .env.example). "
+            "ESPN_S2 / ESPN_SWID missing: put them in .env (see .env.example). "
             "Both come from your browser's cookies on fantasy.espn.com."
         )
     return c
@@ -74,14 +74,14 @@ def leagues(path: Path | None = None) -> list[dict]:
         id = "123456"     # ESPN league id, from the URL
         slot = 6          # your draft slot; omit until the order is published
 
-    Only the slot is typed — team count, rounds, and which team is yours are
+    Only the slot is typed: team count, rounds, and which team is yours are
     read from ESPN, so a typo can't silently skew a pick ladder. A league with
     no slot gets a slot picker in the tracker, which locks itself in the moment
     ESPN reveals the order (or from the live picks themselves).
     """
     path = path or workdir() / "leagues.toml"
     if not path.exists():
-        raise SystemExit(f"{path} not found — copy leagues.example.toml and fill in your league id")
+        raise SystemExit(f"{path} not found: copy leagues.example.toml and fill in your league id")
     doc = tomllib.loads(path.read_text())
     out = []
     for lg in doc.get("league", []):

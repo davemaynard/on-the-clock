@@ -12,7 +12,7 @@ and a readable board to out/.
 
 **There is no team-count option on purpose.** The endpoint accepts a `teams`
 parameter and echoes it back in the response metadata, but returns byte-identical
-player data for 10, 12, and 14 — same 7,112 drafts, same ADPs to the decimal.
+player data for 10, 12, and 14: same 7,112 drafts, same ADPs to the decimal.
 Passing it produced a file labelled "10-team ADP" that was really the same pooled
 board, which is worse than not having one. If you need team-count-specific ADP,
 it has to come from somewhere else.
@@ -61,7 +61,7 @@ def tier_breaks(players: list[dict], sensitivity: float, window: int = 5) -> lis
     nearby players at the same position, because gaps compress at the top (four
     elite RBs inside ten picks) and stretch out late (RB40 to RB41 can be six
     picks and mean nothing). A single global threshold gets one end or the other
-    wrong — measured against stdev it produced a 60-player WR tier.
+    wrong: measured against stdev it produced a 60-player WR tier.
     """
     if len(players) < 3:
         return [0]
@@ -92,11 +92,11 @@ def board(data: dict, sensitivity: float, depth: int) -> str:
 
     today = date.today().isoformat()
     out = [
-        f"# ADP board — {meta['type']}",
+        f"# ADP board: {meta['type']}",
         "",
         f"**Pulled:** {today}  ",
         f"**Source:** Fantasy Football Calculator, {meta['total_drafts']:,} real drafts "
-        f"between {meta['start_date']} and {meta['end_date']}. Pooled across league sizes — "
+        f"between {meta['start_date']} and {meta['end_date']}. Pooled across league sizes: "
         f"the API's team-count filter is echoed but not applied.  ",
         f"**Tier rule:** new tier where the gap to the next player is unusually large for "
         f"that depth of the board (> {sensitivity}x the local median gap at that position). "
@@ -125,7 +125,7 @@ def board(data: dict, sensitivity: float, depth: int) -> str:
             end = starts[tier_no] if tier_no < len(starts) else len(pos_players)
             group = pos_players[start:end]
             names = ", ".join(f"{p['name']} ({p['adp']:.0f})" for p in group)
-            out.append(f"**Tier {tier_no}** — {names}")
+            out.append(f"**Tier {tier_no}**: {names}")
             out.append("")
 
     # Where the room disagrees most: high stdev relative to ADP means the player
@@ -137,7 +137,7 @@ def board(data: dict, sensitivity: float, depth: int) -> str:
     out += [
         "## Where the room disagrees most",
         "",
-        "High spread relative to ADP — these go multiple rounds apart depending on who's "
+        "High spread relative to ADP: these go multiple rounds apart depending on who's "
         "in the draft. Targets you can usually wait on, or players you must reach for if "
         "you actually want them.",
         "",
@@ -177,7 +177,7 @@ def main(argv: list[str] | None = None) -> None:
     doc.write_text(board(data, args.tier_sensitivity, args.depth))
 
     meta = data["meta"]
-    print(f"{meta['type']} — {meta['total_drafts']:,} drafts "
+    print(f"{meta['type']}: {meta['total_drafts']:,} drafts "
           f"({meta['start_date']} to {meta['end_date']}), {len(data['players'])} players")
     print(f"wrote {raw}")
     print(f"wrote {doc}")

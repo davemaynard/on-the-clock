@@ -1,4 +1,4 @@
-"""final_rows is the one list every artifact renders — pin its contract.
+"""final_rows is the one list every artifact renders: pin its contract.
 
 Synthetic pools (same shape as test_replacement) so everything runs offline:
 repricing math, K/DST VOR, stub rows for off-pool marked names, and the CSV
@@ -171,7 +171,7 @@ def test_serve_accepts_negative_dst_ids_but_not_placeholders():
 def test_verdicts_stay_chip_sized():
     """A verdict renders as a chip beside the name on a 390px phone row. Long
     ones ("WAIT FOR PRICE") truncated the player to "Micha…", so the vocabulary
-    is closed and short — the nuance belongs in the why-line."""
+    is closed and short: the nuance belongs in the why-line."""
     for name, rp in st.reprice(EXAMPLE).items():
         v = rp["verdict"]
         assert v in st.VERDICTS, f"{name}: {v!r} is not a canonical verdict"

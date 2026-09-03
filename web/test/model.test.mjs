@@ -110,6 +110,51 @@ describe("roster need", () => {
   });
 });
 
+describe("advice", () => {
+  const withMine = (...indices) => ({
+    drafted: new Set(indices),
+    mine: new Set(indices),
+    offBoard: 0,
+  });
+  test("names the position whose tier is about to evaporate", () => {
+    // A longer draft, so the lineup is not yet forced by the pick count.
+    const roomy = { ...league, picks: snakePicks(3, 4, 9) };
+    const draft = assess(roomy, players, fresh());
+    assert.equal(draft.forced, false);
+    assert.match(
+      advice(roomy, draft),
+      /^Optimize for <b>(QB|RB|WR)<\/b>: waiting past \d+ costs|^Open slot/,
+    );
+  });
+  test("forced: the lineup still has holes and the picks are running out", () => {
+    // Three picks left (11, 14, 19 of 19) with QB, RB, WR, K and FLEX all open.
+    const state = { drafted: new Set([0, 1, 2, 3, 4, 5, 6]), mine: new Set(), offBoard: 3 };
+    const draft = assess(league, players, state);
+    assert.equal(draft.forced, true);
+    assert.match(advice(league, draft), /^Fill <b>/);
+  });
+  test("endgame: only the kicker slot is open and one pick remains", () => {
+    const state = withMine(0, 1, 2, 3);
+    state.drafted.add(4).add(5).add(6);
+    state.offBoard = 8; // 15 picks gone; pick 19 is the last
+    const draft = assess(league, players, state);
+    assert.equal(draft.endgame, true);
+    assert.equal(advice(league, draft), "Optimize for <b>K / D/ST</b>: last picks");
+    assert.deepEqual(draft.ranked, [7], "only the kicker is a candidate");
+    assert.equal(draft.exhausted("WR"), true);
+    assert.equal(draft.exhausted("K"), false);
+  });
+  test("starters filled: shop for depth", () => {
+    const flat = { ...league, families: [], picks: snakePicks(3, 4, 6) };
+    const draft = assess(flat, players, withMine(0, 1, 2, 7));
+    assert.equal(advice(flat, draft), "Optimize for <b>RB/WR depth</b>: starters filled");
+  });
+  test("starters filled but a flex open: name the family", () => {
+    const draft = assess(league, players, withMine(0, 1, 2));
+    assert.match(advice(league, draft), /^Optimize for <b>FLEX<\/b>: 1 open/);
+  });
+});
+
 describe("lineup", () => {
   test("starters fill greedily by value; the rest is the bench", () => {
     const { slots, bench } = fillLineup(league, players, new Set([0, 1, 3, 4, 7]));

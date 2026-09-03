@@ -67,9 +67,9 @@ def test_demo_logos_come_from_the_fixture():
 
 
 def test_demo_copy_has_no_em_dashes():
-    """Colons, commas, and full stops do the work; the dash is a tell."""
+    """Colons, commas, and full stops do the work; the em-dash is a tell."""
     import re
 
     html = demo.render()
     visible = re.sub(r"<(script|style)[^>]*>.*?</\1>", "", html, flags=re.S)
-    assert "—" not in visible and "&mdash;" not in visible
+    assert "\u2014" not in visible and "&mdash;" not in visible

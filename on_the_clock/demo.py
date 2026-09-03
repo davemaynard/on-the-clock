@@ -1,4 +1,4 @@
-"""Render the board from bundled fixture data — no cookies, no network.
+"""Render the board from bundled fixture data: no cookies, no network.
 
     on-the-clock demo            # writes out/demo.html
     on-the-clock demo --serve    # ...and serves it on :8777 (no live sync)
@@ -28,7 +28,7 @@ def load() -> list[dict]:
     out = []
     for lg in doc["leagues"]:
         entries = json.loads((FIXTURES / lg["players"]).read_text())
-        fmt = "2qb" if page.bb.is_superflex(lg["league"]["settings"]) else "ppr"
+        fmt = "2qb" if page.board.is_superflex(lg["league"]["settings"]) else "ppr"
         cfg = {"id": lg["league"]["id"], "slot": lg["slot"], "team": lg["team"]}
         out.append(page.assemble(cfg, lg["league"], entries, doc["year"],
                                  spread=adp[fmt], marks_path=FIXTURES / "marks.toml"))

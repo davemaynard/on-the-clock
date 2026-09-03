@@ -1,4 +1,4 @@
-"""Your own calls, layered on the computed board — read from marks.toml.
+"""Your own calls, layered on the computed board: read from marks.toml.
 
 The engine ranks by projection and value over replacement; that's the floor.
 What it can't know is this week's news and your read of the room. This file
@@ -7,7 +7,7 @@ rail. Change a call, rebuild the page: that's the whole update loop.
 
 Four kinds of mark, in precedence order when a name carries more than one:
 
-    sleeper   hurt today, but the reduced projection still clears replacement —
+    sleeper   hurt today, but the reduced projection still clears replacement ,
               a late pick plus the IR slot buys the healthy version
     alert     news the projections have not priced (global, every league)
     fade      priced fine, still don't take him at that price
@@ -19,23 +19,23 @@ text the plan rail shows verbatim.
 
     # marks.toml
     [alerts]
-    "Some Player" = "Exempt list, no timetable — the board still prices him RB16."
+    "Some Player" = "Exempt list, no timetable: the board still prices him RB16."
 
     [reprice."Some Player"]
     factor = 0.65
     verdict = "AVOID"
 
     [leagues.123456]
-    principles = ["Ten teams means replacement is fat — RB/WR through round 8."]
+    principles = ["Ten teams means replacement is fat: RB/WR through round 8."]
     script = [["1", 6, "Best RB standing; tiebreak to the WR."]]
     [leagues.123456.targets]
-    "Other Player" = "R1 anchor — the VOR gap to the next RB is the round"
+    "Other Player" = "R1 anchor: the VOR gap to the next RB is the round"
     [leagues.123456.fades]
     [leagues.123456.sleepers]
 
 Every function takes an optional path so tests and the demo can point at a
 fixture; the default is marks.toml in the working directory, and no file at
-all is fine — the board then wears no chips.
+all is fine: the board then wears no chips.
 """
 
 from __future__ import annotations
@@ -80,7 +80,7 @@ def script(league_id: str, path: Path | None = None) -> list[tuple[str, int, str
 
 
 def base(name: str) -> str:
-    """Generational suffixes stripped, lowercased — ESPN and a marks file disagree
+    """Generational suffixes stripped, lowercased: ESPN and a marks file disagree
     about Jr./III often enough that exact-match marks silently vanish."""
     parts = name.split()
     while parts and parts[-1].rstrip(".").lower() in SUFFIXES:

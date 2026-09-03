@@ -1,7 +1,7 @@
 [project]
 name = "on-the-clock"
 version = "0.1.0"
-description = "A fantasy football draft board built from your league's own scoring — value over replacement, cost of waiting, and a phone-first tracker that syncs ESPN's live picks."
+description = "A fantasy football draft board built from your league's own scoring: value over replacement, cost of waiting, and a phone-first tracker that syncs ESPN's live picks."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"

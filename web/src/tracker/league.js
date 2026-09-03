@@ -184,6 +184,7 @@ export function mountLeague(league, live) {
 
     root.classList.toggle("is-fit-mode", fitMode);
     for (const [i, row] of rows) {
+      query(".row-toggle", row).setAttribute("aria-pressed", String(state.drafted.has(i)));
       row.classList.toggle("is-drafted", state.drafted.has(i) && !state.mine.has(i));
       row.classList.toggle("is-mine", state.mine.has(i));
       row.classList.toggle("is-recommended", draft.recommended.has(i));
@@ -307,9 +308,11 @@ export function mountLeague(league, live) {
   query(".offboard-remove", root).addEventListener("click", () => bumpOffBoard(-1));
   for (const button of els.undos) button.addEventListener("click", undo);
 
+  // Native dialogs on purpose: two actions a year, and they work offline on every phone.
   query(".restore", root).addEventListener("click", () => {
     const code = prompt("Paste a saved draft code:");
     if (!code) return;
+    snapshot();
     const next = decodeState(code);
     state.drafted = next.drafted;
     state.mine = next.mine;
@@ -319,8 +322,10 @@ export function mountLeague(league, live) {
   });
   query(".reset", root).addEventListener("click", () => {
     if (!confirm("Clear every pick recorded for this league?")) return;
+    snapshot();
     state.drafted.clear();
     state.mine.clear();
+    state.offBoard = 0;
     refresh();
   });
   els.stateCode.addEventListener("focus", (event) => event.target.select());

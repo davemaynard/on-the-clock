@@ -1,4 +1,4 @@
-"""`on-the-clock <command>` — one entry point over the engine modules.
+"""`on-the-clock <command>`: one entry point over the engine modules.
 
     build    fetch every league in leagues.toml and write out/board.html
     serve    the same board as a local draft room, with ESPN's live picks synced in
@@ -7,7 +7,7 @@
     board    the value-over-replacement board for one league (markdown)
     adp      snapshot Fantasy Football Calculator ADP into data/raw/
     league   pull a league's settings into a readable sheet
-    demo     render the board from bundled fixture data — no cookies, no network
+    demo     render the board from bundled fixture data: no cookies, no network
 """
 
 from __future__ import annotations

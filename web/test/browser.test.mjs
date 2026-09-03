@@ -69,6 +69,8 @@ describe("the demo board in Chrome", skipReason ? { skip: skipReason } : {}, () 
     test(`${name}: renders without errors, fits the viewport, shows both leagues`, async () => {
       const { page, context, errors } = await open(viewport);
       assert.deepEqual(errors, []);
+      assert.equal(await page.evaluate(() => document.compatMode), "CSS1Compat", "standards mode");
+      assert.equal(await page.evaluate(() => document.documentElement.lang), "en");
       assert.equal(await page.$eval("h1", (el) => el.textContent.trim()), "On the Clock");
       assert.equal(await page.$$eval("[role=tab]", (els) => els.length), 2);
       const [scrollWidth, clientWidth] = await page.evaluate(() => [
@@ -189,6 +191,45 @@ describe("the demo board in Chrome", skipReason ? { skip: skipReason } : {}, () 
       return getComputedStyle(probe).backgroundImage.length;
     });
     assert.ok(light > 100, "a dark-variant club still has a mark");
+    await context.close();
+  });
+
+  test("keyboard: Tab reaches a player, Enter drafts him, arrows move between leagues", async () => {
+    const { page, context } = await open(DESKTOP);
+    await page.focus("#league-0 .search");
+    // Search, then the position filters, then the hide toggle and undo, then the board.
+    let focused = "";
+    for (let i = 0; i < 20 && focused !== "row-toggle"; i++) {
+      await page.keyboard.press("Tab");
+      focused = await page.evaluate(() => document.activeElement.className);
+    }
+    assert.equal(focused, "row-toggle", "a board row is reachable by keyboard");
+    await page.keyboard.press("Enter");
+    assert.equal(
+      await page.$eval("#league-0 .board-list .row:nth-child(1)", (el) =>
+        el.classList.contains("is-drafted"),
+      ),
+      true,
+    );
+    await page.focus("#tab0");
+    await page.keyboard.press("ArrowRight");
+    assert.equal(await page.evaluate(() => document.activeElement.id), "tab1");
+    assert.equal(await page.$eval("#league-1", (el) => el.classList.contains("is-active")), true);
+    assert.equal(
+      await page.$eval("#tab0", (el) => el.tabIndex),
+      -1,
+      "only the selected tab is in the Tab order",
+    );
+    await context.close();
+  });
+
+  test("touch: the hide-drafted checkbox is a real tap target", async () => {
+    const context = await browser.newContext({ viewport: PHONE, hasTouch: true, isMobile: true });
+    const page = await context.newPage();
+    await page.goto(url);
+    await page.waitForSelector(".league.is-active .candidate");
+    const box = await rect(page, "#league-0 .hide-drafted");
+    assert.ok(box.width >= 20 && box.height >= 20, `checkbox is ${box.width}x${box.height}`);
     await context.close();
   });
 });

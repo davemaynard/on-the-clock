@@ -69,7 +69,7 @@ def logo(espn_url: str, team: str, size: int = 150, dark: bool = False) -> str:
     """One team logo. `dark` asks ESPN for its light-on-dark variant.
 
     ESPN publishes a 500-dark alternative for the handful of clubs whose mark
-    disappears on a dark ground — the Raiders and the Jets among them — and
+    disappears on a dark ground: the Raiders and the Jets among them: and
     returns the identical file for everyone else, so asking for it costs nothing
     and the caller can compare the two.
     """

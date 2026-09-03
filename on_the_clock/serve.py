@@ -1,4 +1,4 @@
-"""Local draft server — the board, plus ESPN's live picks folded into it.
+"""Local draft server: the board, plus ESPN's live picks folded into it.
 
 The published artifact can never do this. Its CSP blocks every external host but
 Google Fonts, and reaching ESPN needs private cookies that must not live in a
@@ -12,7 +12,7 @@ What it adds over the artifact:
   * knows which picks are yours (by teamId), so your roster fills itself
   * takes the current pick straight from ESPN rather than counting checkboxes
 
-Manual tapping still works and still wins — the sync only ever *adds* picks it
+Manual tapping still works and still wins: the sync only ever *adds* picks it
 sees. That matters for the offline league, where ESPN only knows what the
 commissioner has typed in, and may know it late or not at all.
 
@@ -92,7 +92,7 @@ class DraftFeed:
         # draft (orderType DRAFT_START). Trust gates: before availableDate the
         # order is a placeholder; and a DRAFT_START order that still reads
         # 1..N is indistinguishable from the placeholder, so it stays
-        # untrusted — the tracker falls back to reading your own
+        # untrusted: the tracker falls back to reading your own
         # first-round pick, or the manual slot picker.
         ds = (data.get("settings") or {}).get("draftSettings") or {}
         order = ds.get("pickOrder") or []
@@ -167,7 +167,7 @@ def reachable_urls(port: int) -> list[str]:
     """Addresses this box can be reached on, Tailscale first.
 
     The hostname lookup does not surface the Tailscale address on macOS, so ask
-    tailscale directly — that is the address that matters from a phone at a draft
+    tailscale directly: that is the address that matters from a phone at a draft
     table, and printing only the LAN IP would be quietly useless there.
     """
     urls: list[str] = []

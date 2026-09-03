@@ -1,4 +1,4 @@
-"""On the Clock — a fantasy football draft board built from your league's own scoring.
+"""On the Clock: a fantasy football draft board built from your league's own scoring.
 
 The engine: ESPN's league-scored projections, value over replacement from a
 greedy fill of your real lineup (flex families, superflex included), an

@@ -14,7 +14,7 @@ Team count and round count default to the league's real ESPN settings; pass
 around it is roughly normal with the standard deviation the ADP source reports.
 So P(still there at pick N) = P(his draw lands after N). ADP is quoted as an
 overall pick number, which counts players gone rather than rounds elapsed, so it
-compares across league sizes without conversion — the thing that changes with team
+compares across league sizes without conversion: the thing that changes with team
 count is what a player is *worth*, and VOR already carries that.
 
 The plan is deliberately not a script of who to take. It's the two things that are
@@ -102,7 +102,7 @@ def render(players: list[dict], picks: list[int], league_name: str, slot: int,
     spread = load_adp_spread(fmt)
     for p in players:
         adp, sd = spread.get(p["key"], (None, DEFAULT_STDEV))
-        # Prefer ESPN's ADP as the centre — this room drafts on ESPN's board — but
+        # Prefer ESPN's ADP as the centre: this room drafts on ESPN's board: but
         # take the spread from the consensus source, which is the one that reports it.
         p["centre"] = p["espn_adp"] or adp
         p["sd"] = sd
@@ -112,7 +112,7 @@ def render(players: list[dict], picks: list[int], league_name: str, slot: int,
     pool.sort(key=lambda p: -p["vor"])
 
     out = [
-        f"# Draft plan — {league_name}",
+        f"# Draft plan: {league_name}",
         "",
         f"**Slot {slot} of {teams}**, snake. Built {date.today().isoformat()}.  ",
         "**Your picks:** " + ", ".join(str(n) for n in picks),
@@ -167,7 +167,7 @@ def render(players: list[dict], picks: list[int], league_name: str, slot: int,
         out += ["| P | Player | Pos | VOR | Proj | ESPN ADP | Consensus |",
                 "|---:|:---|:---|---:|---:|---:|---:|"]
         for prob, p in top:
-            cons = f"{p['consensus']:.0f}" if p["consensus"] else "—"
+            cons = f"{p['consensus']:.0f}" if p["consensus"] else ", "
             flag = f" **[{p['status'].title()}]**" if p["status"] in bb.ALARMING else ""
             # the news verdict rides along, so the plan reads like the board
             if p.get("verdict"):
@@ -225,7 +225,7 @@ def main(argv: list[str] | None = None) -> None:
     # Same row list the board and CSV render, so the plan can never quote a VOR
     # or a position rank the live board contradicts. Stubs (marked names with
     # no ESPN projection) and K/DST carry no availability model, so they drop
-    # out here — the ranking and the numbers stay the board's.
+    # out here: the ranking and the numbers stay the board's.
     from . import marks as st
 
     rows, _, _ = bb.final_rows(players, settings, st.marks(args.league_id), st.reprice())

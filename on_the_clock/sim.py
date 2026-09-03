@@ -1,5 +1,5 @@
 """Monte Carlo pick-slot valuation for a snake draft, driven by the league's
-real ESPN settings — team count, roster shape, flex families (superflex
+real ESPN settings: team count, roster shape, flex families (superflex
 included), and draft length all come from the API, not constants.
 
 For each candidate slot 1..teams, simulate the draft thousands of times:
@@ -10,7 +10,7 @@ For each candidate slot 1..teams, simulate the draft thousands of times:
 - Our team picks greedy max-VOR off the league-scored board, same constraints.
 - Score = projected points of the optimal starting lineup for the league's real
   roster (base slots, then each flex family greedily, narrowest first).
-- K/DST are excluded from the simulated rounds — they're the last picks by
+- K/DST are excluded from the simulated rounds: they're the last picks by
   league custom and identical across slots.
 
 Usage:

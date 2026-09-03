@@ -2,7 +2,7 @@
 
 Consensus rankings are scored for a generic league. Yours are not. ESPN computes
 each player's projected season total **through your league's actual scoring
-rules** — verified: recomputing every rule against ESPN's projected stat lines
+rules**: verified: recomputing every rule against ESPN's projected stat lines
 reproduces their published total to the cent for both leagues. So the projections
 already price in whatever your league does differently, including per-game
 yardage bonuses and long-TD bonuses.
@@ -36,22 +36,22 @@ HOST = "https://lm-api-reads.fantasy.espn.com"
 
 POS = {1: "QB", 2: "RB", 3: "WR", 4: "TE", 5: "K", 16: "DST"}
 # Flex-family lineup slots: ESPN slot id -> which positions can fill it. Slot 7
-# (OP/superflex) is the one that changes a draft — it puts QBs in flex demand,
+# (OP/superflex) is the one that changes a draft: it puts QBs in flex demand,
 # which moves QB replacement level by a full tier. Missing a slot id here used to
 # silently delete starters from the replacement math; now any non-zero lineup
 # slot that isn't in SLOT_POS, FLEX_SLOTS, or IGNORED_SLOTS raises.
 FLEX_SLOTS = {3: ("RB", "WR"), 5: ("WR", "TE"), 7: ("QB", "RB", "WR", "TE"),
               23: ("RB", "WR", "TE")}
 FLEX_LABELS = {3: "RB/WR", 5: "WR/TE", 7: "OP", 23: "FLEX"}
-IGNORED_SLOTS = frozenset({20, 21, 24})  # bench, IR, ER — not starters
+IGNORED_SLOTS = frozenset({20, 21, 24})  # bench, IR, ER: not starters
 # Kicker and defense are computed for replacement level but kept off the board.
 # Their projected spread is narrower than their own week-to-week variance, so a
-# few points of "value over replacement" is noise wearing a number — VOR ranks
+# few points of "value over replacement" is noise wearing a number: VOR ranks
 # K1 alongside a mid-round RB, which is how you end up drafting a kicker in the
 # fifth round. Stream them; take them in the last two rounds.
 STREAMED = frozenset({"K", "DST"})
 
-# ESPN marks most of the top of the board QUESTIONABLE through camp — 17 of the top
+# ESPN marks most of the top of the board QUESTIONABLE through camp: 17 of the top
 # 20 projected players carried it in late August one year. Flagging that is noise pretending
 # to be a warning, so only genuinely actionable designations get a marker.
 ALARMING = frozenset({"OUT", "DOUBTFUL", "INJURY_RESERVE", "SUSPENSION"})
@@ -137,7 +137,7 @@ def extract(entries: list[dict], year: int, rank_type: str = "PPR") -> list[dict
         ranks = pl.get("draftRanksByRankType") or {}
         out.append(
             {
-                # ESPN's own player id — the join key for live draft picks,
+                # ESPN's own player id: the join key for live draft picks,
                 # which arrive as playerIds and nothing else.
                 "espn_id": pl["id"],
                 "name": pl["fullName"],
@@ -157,7 +157,7 @@ def flex_families(slots: dict) -> list[tuple[int, tuple[str, ...], int]]:
     """Non-zero flex-family lineup slots as (slot_id, eligible_positions, count).
 
     Sorted most-constrained-first (fewest eligible positions), so a greedy fill
-    commits the narrow slots (RB/WR) before the wide ones (OP) — the wide slot
+    commits the narrow slots (RB/WR) before the wide ones (OP): the wide slot
     can always absorb whatever the narrow one couldn't.
     """
     fams = [
@@ -188,7 +188,7 @@ def replacement_levels(players: list[dict], settings: dict) -> tuple[dict[str, f
             required[pos] = required.get(pos, 0) + count * teams
         elif count and sid not in FLEX_SLOTS and sid not in IGNORED_SLOTS:
             raise SystemExit(
-                f"lineup slot id {sid} (x{count}) is not in SLOT_POS/FLEX_SLOTS — "
+                f"lineup slot id {sid} (x{count}) is not in SLOT_POS/FLEX_SLOTS: "
                 "add it before trusting any replacement level from this league"
             )
     families = flex_families(slots)
@@ -239,7 +239,7 @@ def final_rows(
     reprice: dict[str, dict],
     raw: dict[str, dict] | None = None,
 ) -> tuple[list[dict], dict[str, float], dict]:
-    """The ONE row list every artifact renders — board HTML, CSV, research doc.
+    """The ONE row list every artifact renders: board HTML, CSV, research doc.
 
     News repricing happens first: `adj_proj = proj x factor` for names in
     `reprice` (suffix-tolerant join), with `proj` kept untouched for
@@ -256,7 +256,7 @@ def final_rows(
 
     Rows come back skill-sorted by -vor, then K by -vor, then DST by -vor,
     then a stub row (`stub: 1`, numbers None) for every `marks` name with no
-    projected player — so the marks layer can never reference a ghost.
+    projected player: so the marks layer can never reference a ghost.
     `raw` is an optional norm(name) -> {espn_id, pos, team, status} index from
     the raw fetch, to flesh out stubs ESPN carries without a projection.
 
@@ -317,7 +317,7 @@ def is_superflex(settings: dict) -> bool:
 
 
 def adp_format(settings: dict) -> str:
-    """Which FFC ADP market matches this league — superflex rooms draft QBs a
+    """Which FFC ADP market matches this league: superflex rooms draft QBs a
     full tier earlier, so comparing them against 1-QB ADP calls every QB a reach."""
     return "2qb" if is_superflex(settings) else "ppr"
 
@@ -325,7 +325,7 @@ def adp_format(settings: dict) -> str:
 def load_consensus(fmt: str = "ppr") -> dict[str, float]:
     """Latest FFC snapshot for the given format, keyed by normalized name.
 
-    Pooled across league sizes — FFC's team-count filter is echoed in the response
+    Pooled across league sizes: FFC's team-count filter is echoed in the response
     metadata but does not change the data, so there is no 10-team board to compare
     a 10-team league against. Read the ADP columns as "what the wider market does,"
     and the ESPN ADP column as "what this room is more likely to do."
@@ -361,7 +361,7 @@ def build(
     )
 
     out = [
-        f"# Draft board — {name}",
+        f"# Draft board: {name}",
         "",
         f"**League:** ESPN {league_id} · {teams} teams · {slot_desc}  ",
         f"**Built:** {date.today().isoformat()}  ",
@@ -372,7 +372,7 @@ def build(
         f"{'2QB/superflex' if fmt == '2qb' else 'PPR'} snapshot in `data/raw/`.",
         "",
         "Only `Out` / `Doubtful` designations are marked. ESPN had 17 of the top 20 projected "
-        "players listed Questionable on the day this was built — in camp that status is "
+        "players listed Questionable on the day this was built: in camp that status is "
         "noise, and flagging it would bury the two designations that matter.",
         "",
         "## Replacement level",
@@ -407,22 +407,22 @@ def build(
     ]
     for p in ranked[:depth]:
         adp = p["adp"]
-        gap = f"{adp - p['vor_rank']:+.0f}" if adp else "—"
-        espn_adp = f"{p['espn_adp']:.1f}" if p["espn_adp"] else "—"
+        gap = f"{adp - p['vor_rank']:+.0f}" if adp else ", "
+        espn_adp = f"{p['espn_adp']:.1f}" if p["espn_adp"] else ", "
         flag = f" **[{p['status'].title()}]**" if p["status"] in ALARMING else ""
         out.append(
             f"| {p['vor_rank']} | {p['name']}{flag} | {p['pos']}{p['pos_rank']} | {p['team']} | "
             f"{p['proj']:.0f} | {p['adj_proj']:.0f} | {p['vor']:.0f} | {espn_adp} | "
             f"{adp:.1f} | {gap} |" if adp else
             f"| {p['vor_rank']} | {p['name']}{flag} | {p['pos']}{p['pos_rank']} | {p['team']} | "
-            f"{p['proj']:.0f} | {p['adj_proj']:.0f} | {p['vor']:.0f} | {espn_adp} | — | — |"
+            f"{p['proj']:.0f} | {p['adj_proj']:.0f} | {p['vor']:.0f} | {espn_adp} |: |: |"
         )
 
     # Only players who are actually worth a pick can be mispriced. Below
-    # replacement, "VOR rank" is meaningless — those players are interchangeable
+    # replacement, "VOR rank" is meaningless: those players are interchangeable
     # with the waiver wire, so a late ADP flatters them into looking like value.
     # Ranking them produced a target list of sub-replacement tight ends.
-    # IR/ER spots aren't drafted — counting them stretched the "priced" window.
+    # IR/ER spots aren't drafted: counting them stretched the "priced" window.
     draftable_through = teams * sum(
         v for k, v in settings["rosterSettings"]["lineupSlotCounts"].items()
         if int(k) not in (21, 24)
@@ -449,15 +449,15 @@ def build(
     out += [""]
     out += table(
         targets,
-        "Targets — worth more to this league than the room is paying",
+        "Targets: worth more to this league than the room is paying",
         "Their value in *this* scoring, at *this* team count, outruns where they actually go. "
         "The bigger the gap, the longer you can wait and still get them. "
-        "Players below replacement level are excluded — a late ADP doesn't make a "
+        "Players below replacement level are excluded: a late ADP doesn't make a "
         "replacement-level player a bargain.",
     )
     out += table(
         fades,
-        "Fades — the room pays more than this league says they're worth",
+        "Fades: the room pays more than this league says they're worth",
         "Not bad players. Players whose price already exceeds their edge over replacement here. "
         "Let someone else take them.",
     )
