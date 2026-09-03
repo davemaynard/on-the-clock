@@ -451,7 +451,8 @@ p {
   display: none;
 }
 
-/* The fold button: a chevron drawn with two borders. */
+/* The fold button: the same quiet control as every other button on the page, with a
+ * chevron drawn from two borders. Hover and press come from the shared states below. */
 .assistant-fold {
   position: relative;
   flex: none;
@@ -459,7 +460,7 @@ p {
   width: 2.6rem;
   height: 2.6rem;
   background: var(--sunk);
-  border: 1px solid var(--muted);
+  border: 1px solid var(--line);
   border-radius: var(--radius-control);
   cursor: pointer;
 }
@@ -469,11 +470,17 @@ p {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 0.6rem;
-  height: 0.6rem;
-  border-right: 3px solid var(--ink);
-  border-bottom: 3px solid var(--ink);
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
   transform: translate(-50%, -30%) rotate(-135deg);
+  transition: border-color var(--ease);
+}
+
+.assistant-fold:hover::after,
+.assistant-fold:focus-visible::after {
+  border-color: var(--ink);
 }
 
 /* Folded: one bar, the 2.6rem button setting the row height. Every text block is

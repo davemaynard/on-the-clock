@@ -532,7 +532,7 @@ def _render(data: list[dict], live: bool, logos: dict[str, tuple[str, str]] | No
 {logo_css(logos or {})}
 <main class="page">
   <header class="masthead">
-    <p class="kicker">{today.year} draft day &middot; built {today.isoformat()}</p>
+    <p class="kicker">{today.year} draft day</p>
     <h1>On the Clock</h1>
     <p class="subtitle">{len(data)} leagues, each board built from that league's own scoring and
     real lineup: superflex counts, flex counts, all of it. Tap players off as they go
