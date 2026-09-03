@@ -216,7 +216,7 @@ def render_league(d: dict, idx: int) -> str:
         # thing twice and cost the name its room. The verdict is the stronger
         # of the two — it tells you what to DO — so it stands alone.
         flag = (
-            f'<span class="tag out">'
+            f'<span class="tag tag-out">'
             f'{esc(STATUS_LABEL.get(pl["status"], pl["status"].title()))}</span>'
             if pl["status"] in bb.ALARMING and not pl.get("verdict") else ""
         )
@@ -225,36 +225,37 @@ def render_league(d: dict, idx: int) -> str:
             if pl.get("verdict"):
                 # The chip IS the verdict — "avoid", "stash 160+" — not the
                 # generic "news" word that only raises the question.
-                cls = ("mk-avoid" if pl["verdict"].startswith(("AVOID", "DO NOT"))
-                       else "mk-stash")
+                cls = ("tag-avoid" if pl["verdict"].startswith(("AVOID", "DO NOT"))
+                       else "tag-stash")
                 tag = verdict_tag(pl["verdict"])
                 title = f' title="{esc(pl["verdict"])}"' if tag != pl["verdict"] else ""
                 flag += (f'<span class="tag {cls}"{title}>'
                          f'{esc(tag.lower())}</span>')
             else:
                 word = "news" if pl["mark"] == "alert" else pl["mark"]
-                flag += f'<span class="tag mk-{pl["mark"]}">{word}</span>'
+                flag += f'<span class="tag tag-{pl["mark"]}">{word}</span>'
             # The chip carries the verdict, the why-line carries the reason —
             # printing the verdict in both is the "too much metadata" a phone
             # row can't afford. Full wording rides along as the chip's title.
             text = pl["why"]
-            why = f'<small class="rw-why">{esc(text)}</small>'
+            why = f'<small class="row-why">{esc(text)}</small>'
         if pl["vor"] is None:
-            vor = '<span class="rw-vor dim">&ndash;</span>'
+            vor = '<span class="row-vor is-dim">&ndash;</span>'
         else:
             # One number: the current, news-adjusted value. The pre-news figure
             # beside it cost a third of the row's width to say what the chip and
             # the why-line already say; it lives on in the CSV's Proj column.
-            vor = f'<span class="rw-vor" title="Tap: VOR / fit score">{pl["vor"]:.0f}</span>'
+            vor = f'<span class="row-vor" title="Tap: VOR / fit score">{pl["vor"]:.0f}</span>'
         board.append(
-            f'<li class="row{" is-streamer" if pl["pos"] in bb.STREAMED else ""}" data-i="{i}">'
-            f'<button class="mine-btn" type="button" aria-label="Mark {esc(pl["name"])} as mine">'
-            "+</button>"
-            f'<span class="rw-name"><i class="tm tm-{esc(pl["team"])}" aria-hidden="true"></i>'
-            f'<span class="rw-nm">{esc(pl["name"])}</span>'
+            f'<li class="row{" is-streamer" if pl["pos"] in bb.STREAMED else ""}" data-index="{i}">'
+            f'<button class="mine-button" type="button" '
+            f'aria-label="Mark {esc(pl["name"])} as mine">+</button>'
+            f'<span class="row-name">'
+            f'<i class="team-mark team-mark-{esc(pl["team"])}" aria-hidden="true"></i>'
+            f'<span class="row-player">{esc(pl["name"])}</span>'
             f"{flag}</span>"
-            f'<span class="rw-pos">{esc(pl["pos"])}{pl["pos_rank"]}</span>'
-            f'<span class="rw-team">{esc(pl["team"])}</span>'
+            f'<span class="row-pos">{esc(pl["pos"])}{pl["pos_rank"]}</span>'
+            f'<span class="row-team">{esc(pl["team"])}</span>'
             + vor
             + why
             + "</li>"
@@ -263,15 +264,15 @@ def render_league(d: dict, idx: int) -> str:
     hurt = ""
     if d["hurt"]:
         items = "".join(
-            f'<li><span class="tag out">{esc(p["status"].title())}</span>'
-            + ('<span class="tag mk-slp">slp</span>' if p.get("mark") == "slp" else "")
-            + f'{esc(p["name"])} <span class="pos">{esc(p["pos"])}{p["pos_rank"]}</span></li>'
+            f'<li><span class="tag tag-out">{esc(p["status"].title())}</span>'
+            + ('<span class="tag tag-slp">slp</span>' if p.get("mark") == "slp" else "")
+            + f'{esc(p["name"])} <span class="pos-rank">{esc(p["pos"])}{p["pos_rank"]}</span></li>'
             for p in d["hurt"][:8]
         )
         hurt = f'<section class="hurt"><h3>Actually hurt</h3><ol>{items}</ol></section>'
 
     chips = "".join(
-        f'<button class="posfilter{" on" if q == "ALL" else ""}" type="button" '
+        f'<button class="pos-filter{" is-on" if q == "ALL" else ""}" type="button" '
         f'data-pos="{q}">{q}</button>'
         for q in ("ALL", "QB", "RB", "WR", "TE", "FLX", "K", "DST")
     )
@@ -279,22 +280,22 @@ def render_league(d: dict, idx: int) -> str:
     if d["principles"]:
         prins = "".join(f"<li>{esc(x)}</li>" for x in d["principles"])
         script = "".join(
-            f'<li><span class="rd">R{esc(r)}</span>'
-            f'<span class="pk num">@{pk}</span><span>{esc(txt)}</span></li>'
+            f'<li><span class="round">R{esc(r)}</span>'
+            f'<span class="pick">@{pk}</span><span>{esc(txt)}</span></li>'
             for r, pk, txt in d["script"]
         )
         plan = f"""
   <details class="plan">
     <summary>The plan: thesis and pick script</summary>
-    <ul class="plan-prin">{prins}</ul>
+    <ul class="plan-principles">{prins}</ul>
     <ol class="plan-script">{script}</ol>
-    <p class="plan-note">On the board below: <span class="tag mk-target">target</span>
-    take at price &middot; <span class="tag mk-fade">fade</span> not at that price &middot;
-    <span class="tag mk-alert">news</span> this week's news, not yet in ESPN's number &middot;
-    <span class="tag mk-avoid">avoid</span> repriced, do not draft &middot;
-    <span class="tag mk-stash">stash 160+</span> repriced, only at the stated
+    <p class="plan-note">On the board below: <span class="tag tag-target">target</span>
+    take at price &middot; <span class="tag tag-fade">fade</span> not at that price &middot;
+    <span class="tag tag-alert">news</span> this week's news, not yet in ESPN's number &middot;
+    <span class="tag tag-avoid">avoid</span> repriced, do not draft &middot;
+    <span class="tag tag-stash">stash 160+</span> repriced, only at the stated
     price or pick &middot;
-    <span class="tag mk-slp">slp</span> hurt sleeper: Out today, still worth a late
+    <span class="tag tag-slp">slp</span> hurt sleeper: Out today, still worth a late
     pick for the IR slot. A struck number is the pre-news VOR; the real one follows.
     The one-line why sits under each name.</p>
   </details>"""
@@ -307,7 +308,8 @@ def render_league(d: dict, idx: int) -> str:
   your next turn.</p>
   <div class="scroller">
     <table class="curve">
-      <thead><tr><th scope="col"><span class="vh">Position</span></th>{picks_head}</tr></thead>
+      <thead><tr><th scope="col"><span class="visually-hidden">Position</span></th>
+        {picks_head}</tr></thead>
       <tbody>{"".join(rows)}</tbody>
     </table>
   </div>"""
@@ -325,7 +327,7 @@ def render_league(d: dict, idx: int) -> str:
     if not d["slot"]:
         opts = "".join(f'<option value="{s}">{s}</option>' for s in range(1, d["teams"] + 1))
         slot_html = f"""
-      <label class="slot-set">Draft slot
+      <label class="slot-picker">Draft slot
         <select class="slot-select" aria-label="Your draft slot">
           <option value="">?</option>{opts}
         </select></label>
@@ -333,8 +335,8 @@ def render_league(d: dict, idx: int) -> str:
       Live sync sets it automatically once the order or first picks appear.</p>"""
     active = " is-active" if idx == 0 else ""
     return f"""
-<section class="league{active}" id="lg{idx}" role="tabpanel" aria-labelledby="tab{idx}">
-  <div class="col col-rail">
+<section class="league{active}" id="league-{idx}" role="tabpanel" aria-labelledby="tab{idx}">
+  <div class="column column-rail">
   <p class="stat-row">
     <span><b>{d["teams"]}</b> teams</span>
     <span>slot <b class="slot-stat">{d["slot"] or "TBD"}</b></span>
@@ -344,37 +346,37 @@ def render_league(d: dict, idx: int) -> str:
   </p>
   {plan}
 
-  <div class="rail-stick">
-  <div class="now">
-    <div class="now-head">
-      <div class="now-id">
-        <p class="now-label">Your next pick</p>
-        <p class="now-pick">&ndash;</p>
+  <div class="rail-sticky">
+  <div class="assistant">
+    <div class="assistant-head">
+      <div class="assistant-next">
+        <p class="label">Your next pick</p>
+        <p class="next-pick">&ndash;</p>
       </div>
-      <div class="now-meta">
-        <p class="now-clock"></p>
-        <p class="now-count"></p>
+      <div class="assistant-status">
+        <p class="clock"></p>
+        <p class="drafted-count"></p>
         <p class="live-badge" data-state="off"></p>
       </div>
-      <button class="now-fold" type="button" aria-expanded="true"
+      <button class="assistant-fold" type="button" aria-expanded="true"
         aria-label="Collapse draft assistant"></button>
     </div>
-    <p class="now-opt" aria-live="polite"></p>
-    <div class="now-body">
+    <p class="advice" aria-live="polite"></p>
+    <div class="assistant-body">
       {slot_html}
       <div class="entry">
-        <button class="unlisted-minus" type="button" aria-label="Remove an unlisted pick"
+        <button class="offboard-remove" type="button" aria-label="Remove an unlisted pick"
           title="Undo a +1: removes one off-board pick from the count">&minus;1</button>
-        <button class="unlisted" type="button"
+        <button class="offboard-add" type="button"
           title="Someone drafted a player who isn't on this board: count the pick
 so the clock stays right">
           <b>+1</b> off-board pick</button>
-        <span class="unlisted-n" aria-live="polite"></span>
+        <span class="offboard-count" aria-live="polite"></span>
         <button class="undo" type="button" disabled>Undo</button>
       </div>
-      <p class="now-label">Best available &middot; chance he lasts to your pick</p>
-      <ol class="cands best-list"></ol>
-      <div class="pos-best"></div>
+      <p class="label">Best available &middot; chance he lasts to your pick</p>
+      <ol class="candidates"></ol>
+      <div class="leaders"></div>
     </div>
   </div>
 
@@ -383,7 +385,7 @@ so the clock stays right">
   </div>
   </div>
 
-  <div class="col col-board">
+  <div class="column column-board">
   <h2>The board</h2>
   <p class="lede">Tap a player the moment he's taken. Tap again to undo.
   <b>+</b> marks him as yours. Everything above recalculates from what's actually gone,
@@ -391,8 +393,8 @@ so the clock stays right">
   <div class="tools">
     <input class="search" type="search" placeholder="Search player or team"
            aria-label="Search players">
-    <div class="chips">{chips}</div>
-    <label class="toggle"><input class="hidegone" type="checkbox"> Hide drafted</label>
+    <div class="filters">{chips}</div>
+    <label class="toggle"><input class="hide-drafted" type="checkbox"> Hide drafted</label>
     <button class="undo" type="button" disabled>Undo</button>
   </div>
   <ol class="board-list">{"".join(board)}</ol>
@@ -401,18 +403,18 @@ so the clock stays right">
     <summary>Save or restore this draft</summary>
     <p class="lede">Picks save to this browser automatically. This code is the backup:
     copy it if you want to move to another device, or if the tab might get evicted.</p>
-    <input class="statecode" readonly aria-label="Draft state code">
+    <input class="state-code" readonly aria-label="Draft state code">
     <p class="rescue-actions">
       <button class="restore" type="button">Restore from code</button>
       <button class="reset" type="button">Clear all picks</button>
     </p>
-    <p class="store-note" hidden><b>This browser is blocking storage.</b>
+    <p class="storage-note" hidden><b>This browser is blocking storage.</b>
     Picks will hold for this session but not survive a reload. Copy the code above
     if you need to be safe.</p>
   </details>
   </div>
 
-  <div class="col col-wide">
+  <div class="column column-wide">
   {curve_html}
   {hurt}
   </div>
@@ -431,7 +433,8 @@ ASSETS = Path(__file__).resolve().parent / "assets"
 
 
 def asset(name: str) -> str:
-    """board.css / tracker.js, read at render time so an edit shows on the next build."""
+    """board.css / tracker.js: built from web/src by `npm run build`, read at render
+    time so a rebuild shows on the next page."""
     return (ASSETS / name).read_text(encoding="utf-8")
 
 
@@ -446,8 +449,9 @@ def logo_css(logos: dict[str, tuple[str, str]]) -> str:
     for the clubs whose mark disappears on a dark ground."""
     if not logos:
         return ""
-    light = "".join(f".tm-{k}{{background-image:url({v[0]})}}" for k, v in logos.items())
-    dark = "".join(f".tm-{k}{{background-image:url({v[1]})}}" for k, v in logos.items() if v[1])
+    rule = ".team-mark-{}{{background-image:url({})}}"
+    light = "".join(rule.format(k, v[0]) for k, v in logos.items())
+    dark = "".join(rule.format(k, v[1]) for k, v in logos.items() if v[1])
     css = light
     if dark:
         css += (f'\n:root:not([data-theme="light"]){{@media (prefers-color-scheme:dark){{{dark}}}}}'
@@ -462,45 +466,56 @@ def _render(data: list[dict], live: bool, logos: dict[str, tuple[str, str]] | No
     blank tiles."""
     today = date.today()
     tabs = "".join(
-        f'<button class="tab" role="tab" id="tab{i}" data-panel="lg{i}" '
-        f'aria-selected="{"true" if i == 0 else "false"}" aria-controls="lg{i}">'
+        f'<button class="tab" role="tab" id="tab{i}" data-panel="league-{i}" '
+        f'aria-selected="{"true" if i == 0 else "false"}" aria-controls="league-{i}">'
         f'{esc(d["name"])}</button>'
         for i, d in enumerate(data)
     )
     panels = "".join(render_league(d, i) for i, d in enumerate(data))
-    live_flag = "true" if live else "false"
-    payload = [
-        {
-            "i": i,
-            "id": d["name"],
-            "leagueId": d["league_id"],
-            "picks": d["picks"],
-            "slots": d["required"],
-            "families": d["families"],
-            "flex": d["flex"],
-            "team": d["team"],
-            "teams": d["teams"],
-            "slot": d["slot"],
-            "roundsTotal": d["rounds_total"],
-            # pj/ap = original/news-adjusted projection, vd = reprice verdict
-            # (verbatim, e.g. "AVOID"), sb = stub (marked name with no ESPN
-            # projection — numbers are placeholders, not data). Missing ADP
-            # ("a") is 999 so the market queue sorts those rows last instead
-            # of first. "v" is VOR from the *adjusted* projection.
-            "players": [
-                {"n": pl["name"], "p": pl["pos"], "r": pl["pos_rank"], "t": pl["team"],
-                 "v": round(pl["vor"], 1) if pl["vor"] is not None else 0,
-                 "a": round(pl["centre"], 2) if pl["centre"] else 999,
-                 "e": pl["espn_id"], "s": 1 if pl["pos"] in bb.STREAMED else 0,
-                 "m": pl.get("mark", ""), "w": pl.get("why", ""),
-                 "pj": pl["proj"], "ap": pl["adj_proj"], "vd": pl.get("verdict", ""),
-                 "sb": 1 if pl.get("stub") else 0,
-                 "o": 1 if pl["status"] in bb.ALARMING else 0}
-                for pl in d["rows"]
-            ],
-        }
-        for i, d in enumerate(data)
-    ]
+    # The tracker's data contract. One entry per league; `players` walks d["rows"] in
+    # order, so a row's index on the board is its index here. Missing ADP is 999 so
+    # the market queue sorts those rows last instead of first; `vor` is value over
+    # the news-adjusted projection; a stub is a marked name with no ESPN projection,
+    # so its numbers are placeholders.
+    payload = {
+        "live": live,
+        "leagues": [
+            {
+                "index": i,
+                "key": d["name"],
+                "leagueId": d["league_id"],
+                "picks": d["picks"],
+                "slots": d["required"],
+                "families": d["families"],
+                "flex": d["flex"],
+                "team": d["team"],
+                "teams": d["teams"],
+                "slot": d["slot"],
+                "roundsTotal": d["rounds_total"],
+                "players": [
+                    {
+                        "name": pl["name"],
+                        "pos": pl["pos"],
+                        "posRank": pl["pos_rank"],
+                        "team": pl["team"],
+                        "vor": round(pl["vor"], 1) if pl["vor"] is not None else 0,
+                        "adp": round(pl["centre"], 2) if pl["centre"] else 999,
+                        "espnId": pl["espn_id"],
+                        "streamer": pl["pos"] in bb.STREAMED,
+                        "mark": pl.get("mark", ""),
+                        "why": pl.get("why", ""),
+                        "proj": pl["proj"],
+                        "adjProj": pl["adj_proj"],
+                        "verdict": pl.get("verdict", ""),
+                        "stub": bool(pl.get("stub")),
+                        "out": pl["status"] in bb.ALARMING,
+                    }
+                    for pl in d["rows"]
+                ],
+            }
+            for i, d in enumerate(data)
+        ],
+    }
 
     page = f"""<meta charset="utf-8">
 <title>On the Clock &middot; draft board</title>
@@ -510,11 +525,11 @@ def _render(data: list[dict], live: bool, logos: dict[str, tuple[str, str]] | No
 <link rel="stylesheet" href="{FONTS}">
 <style>{asset("board.css")}</style>
 {logo_css(logos or {})}
-<div class="wrap">
+<div class="page">
   <header class="masthead">
     <p class="kicker">{today.year} draft day &middot; built {today.isoformat()}</p>
     <h1>On the Clock</h1>
-    <p class="sub">{len(data)} leagues, each board built from that league's own scoring and
+    <p class="subtitle">{len(data)} leagues, each board built from that league's own scoring and
     real lineup: superflex counts, flex counts, all of it. Tap players off as they go
     and everything recalculates against who is actually gone.</p>
   </header>
@@ -542,8 +557,7 @@ def _render(data: list[dict], live: bool, logos: dict[str, tuple[str, str]] | No
     each draft; August boards move weekly.</p>
   </footer>
 </div>
-<script>window.__LEAGUES__ = {json.dumps(payload)};
-window.__LIVE__ = {live_flag};</script>
+<script>window.ON_THE_CLOCK = {json.dumps(payload)};</script>
 <script>{asset("tracker.js")}</script>
 """
     return page

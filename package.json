@@ -1,0 +1,22 @@
+{
+  "name": "on-the-clock-web",
+  "private": true,
+  "version": "0.1.0",
+  "description": "The draft board's browser side: stylesheet and tracker, built into on_the_clock/assets/ for the Python package to inline.",
+  "type": "module",
+  "scripts": {
+    "build": "node web/build.mjs",
+    "check": "biome check .",
+    "format": "biome format --write .",
+    "test": "node --test \"web/test/*.test.mjs\"",
+    "test:browser": "node --test web/test/browser.test.mjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.11",
+    "esbuild": "^0.28.2",
+    "playwright": "^1.62.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

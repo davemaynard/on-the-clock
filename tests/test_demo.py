@@ -1,4 +1,4 @@
-"""The demo fixture renders the full page offline — the same path the README
+"""The demo fixture renders the full page offline, the same path the README
 screenshot and the tests use, so a rendering regression fails here first."""
 
 from on_the_clock import demo
@@ -20,10 +20,11 @@ def test_demo_assembles_both_leagues():
 def test_demo_page_renders_tracker_payload():
     html = demo.render()
     assert "<h1>On the Clock</h1>" in html
-    assert "window.__LEAGUES__" in html and "window.__LIVE__ = false" in html
+    assert "window.ON_THE_CLOCK = " in html and '"live": false' in html
     assert 'id="tab0"' in html and 'id="tab1"' in html
-    # assets are inlined, not linked — the page is one request
-    assert "<style>:root{" in html and "const LG = window.__LEAGUES__;" in html
+    # assets are inlined, not linked: the page is one request
+    assert "<style>/* Generated from web/src" in html and ":root{" in html
+    assert "window.ON_THE_CLOCK" in html.split("<script>")[-1]
 
 
 def test_demo_marks_reach_the_page():
@@ -39,7 +40,7 @@ def test_demo_marks_reach_the_page():
     assert marked.get("Isiah Pacheco") == "slp"
     html = demo.render()
     assert '<details class="plan">' in html
-    assert "mk-target" in html
+    assert "tag-target" in html
 
 
 def test_demo_logos_come_from_the_fixture():
@@ -57,10 +58,10 @@ def test_demo_logos_come_from_the_fixture():
     assert {k for k, (_, dark) in logos.items() if dark} == {
         "DAL", "DEN", "GB", "LAR", "LV", "MIN", "NYG", "NYJ"}
     html = demo.render()
-    assert ".tm-DET{background-image:url(data:image/png" in html
-    assert '<i class="tm tm-DET" aria-hidden="true"></i>' in html
+    assert ".team-mark-DET{background-image:url(data:image/png" in html
+    assert '<i class="team-mark team-mark-DET" aria-hidden="true"></i>' in html
     # one rule per team, not one image per row
-    assert len(re.findall(r"\.tm-[A-Z]+\{background-image", html)) == 32 + 2 * 8
+    assert len(re.findall(r"\.team-mark-[A-Z]+\{background-image", html)) == 32 + 2 * 8
     # an unknown code (stubs, free agents) is a blank tile, not a crash
     assert images.logos({"FA", "?"}, cache=demo.FIXTURES / "logos", fetch=False) == {}
 

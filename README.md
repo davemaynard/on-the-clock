@@ -1,8 +1,8 @@
 # On the Clock
 
-A fantasy football draft board that is built from **your league's actual rules** —
+A fantasy football draft board that is built from **your league's actual rules**:
 its scoring, its lineup (superflex counts, flex counts, all of it), the number of
-teams, your pick slot — and then recalculates on your phone as players come off the
+teams, your pick slot, and then recalculates on your phone as players come off the
 board.
 
 ![The board on draft day](docs/demo-desktop.png)
@@ -17,7 +17,7 @@ also follows the live ESPN draft feed, so the board keeps up on its own.
 
 - **VOR against your lineup.** Replacement level is derived from the league's real
   starting slots and flex families, not a generic 12-team PPR assumption. A superflex
-  room moves the whole QB tier up; a two-flex room thins RB — the board knows.
+  room moves the whole QB tier up; a two-flex room thins RB. The board knows.
 - **Cost of waiting.** For your next pick, the chance each player lasts and what it
   costs (in projected points) to wait one more round at each position, from Fantasy
   Football Calculator's ADP distribution.
@@ -38,9 +38,9 @@ also follows the live ESPN draft feed, so the board keeps up on its own.
 uv run on-the-clock demo --serve
 ```
 
-Writes `out/demo.html` from a bundled fixture — two invented leagues (a 12-team PPR
-room and a superflex room) over a real late-August snapshot of ESPN projections and
-FFC ADP — and serves it on <http://localhost:8777>. Team names are made up; the
+Writes `out/demo.html` from a bundled fixture (two invented leagues, a 12-team PPR
+room and a superflex room, over a real late-August snapshot of ESPN projections and
+FFC ADP) and serves it on <http://localhost:8777>. Team names are made up; the
 players are real.
 
 ## Use it with your league
@@ -78,19 +78,34 @@ Set `ON_THE_CLOCK_DIR` to point at the working directory from anywhere.
 ### The cookies
 
 Private ESPN leagues need `ESPN_S2` and `ESPN_SWID` from a logged-in browser
-(DevTools → Application → Cookies → espn.com). Public leagues work without them. The
+(DevTools, Application, Cookies, espn.com). Public leagues work without them. The
 `.env` file is gitignored; nothing in this repo ever contains them.
+
+## How it's built
+
+Python does the thinking and the page; the browser side is its own small source tree.
+
+- `on_the_clock/` reads ESPN, computes VOR and the cost of waiting, and renders one
+  self-contained HTML page that inlines the stylesheet, the tracker and a 32-image
+  team-mark sheet.
+- `web/src/board.css` is the stylesheet, and `web/src/tracker/` the tracker as ES
+  modules: `model.js` (the draft math, pure functions), `league.js` (state, undo,
+  wiring), `view.js` (the HTML it redraws), `live.js` (the ESPN feed), `storage.js`
+  and `rescue.js` (persistence and the rescue code).
+- `npm run build` bundles and minifies both into `on_the_clock/assets/`, which is
+  committed so installing from GitHub needs no Node. CI fails if the assets are stale.
 
 ## Development
 
 ```sh
-uv sync
-uv run pytest
+uv sync && npm install
+uv run pytest                  # the Python side; renders the demo fixture end to end
 uv run ruff check .
+npm test                       # the draft model, and the rendered demo in Chrome at
+                               # phone, tablet and desktop widths, light and dark
+npm run check                  # Biome: format and lint web/
+npm run build                  # web/src -> on_the_clock/assets/ (commit the result)
 ```
-
-The tests render the demo fixture end to end, so a rendering regression fails there
-first.
 
 ## Status
 

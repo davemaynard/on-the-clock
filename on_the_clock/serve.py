@@ -36,8 +36,7 @@ from urllib.parse import parse_qs, urlparse
 
 import httpx
 
-from . import config
-from . import page as cheatsheet
+from . import config, page
 
 HOST = "https://lm-api-reads.fantasy.espn.com"
 POLL_TTL = 4.0  # seconds; ESPN is not ours to hammer
@@ -204,11 +203,11 @@ def main(argv: list[str] | None = None) -> None:
     cookies = config.require_cookies()
 
     print("building board from ESPN…", flush=True)
-    html, _ = cheatsheet.build_page(args.year, cookies, live=True)
-    page = html.encode("utf-8")
+    html, _ = page.build_page(args.year, cookies, live=True)
+    body = html.encode("utf-8")
     feed = DraftFeed(cookies, args.year)
 
-    httpd = ThreadingHTTPServer((args.host, args.port), make_handler(page, feed))
+    httpd = ThreadingHTTPServer((args.host, args.port), make_handler(body, feed))
     httpd.daemon_threads = True
     print(f"\nDraft room up on port {args.port}. Live sync ON.")
     for url in reachable_urls(args.port):
