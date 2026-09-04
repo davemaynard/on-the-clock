@@ -8,7 +8,7 @@ board.
 **Live demo:** [davemaynard.github.io/on-the-clock](https://davemaynard.github.io/on-the-clock/)
 
 <p align="center">
-  <img src="docs/demo-devices.png" width="900" alt="The board on a laptop and a phone: the draft assistant with your next pick, best available and the chance each lasts; the board beside it with position filters and a VOR or Fit score toggle">
+  <img src="docs/demo-devices-3d.png" width="880" alt="The board running on a laptop and a phone, shown at an angle: the draft assistant on the phone with your next pick and the best available list, the full board on the laptop beside it">
 </p>
 
 It reads an ESPN league, computes every player's value over replacement for *that*
@@ -47,6 +47,12 @@ room and a superflex room, over a real late-August snapshot of ESPN projections 
 FFC ADP) and serves it on <http://localhost:8777>. Team names are made up; the
 players are real. The team marks and the projection snapshot are ESPN's, cached for
 the demo only, and are not covered by this repo's MIT license.
+
+That command produces this:
+
+<p align="center">
+  <img src="docs/demo-devices.png" width="900" alt="The board on a laptop and a phone: the draft assistant with your next pick, best available and the chance each lasts; the board beside it with position filters and a VOR or Fit score toggle">
+</p>
 
 ## Use it with your league
 

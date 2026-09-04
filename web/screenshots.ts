@@ -3,8 +3,8 @@
 //   docs/demo-desktop.png  the board at 1440x900, 2x
 //   docs/demo-devices.png  both, framed as a phone and a laptop in one picture
 //
-//   uv run on-the-clock demo --out out/demo.html && node web/screenshots.mjs
-import { readFile, writeFile } from "node:fs/promises";
+//   uv run on-the-clock demo --out out/demo.html && node web/screenshots.ts
+import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { chromium } from "playwright";
@@ -13,8 +13,12 @@ const url = pathToFileURL(resolve("out/demo.html")).href;
 const READY = '[aria-label="Best available"] li';
 const PHONE = { width: 390, height: 844 };
 const DESKTOP = { width: 1440, height: 900 };
+/** A 14-inch MacBook Pro's own default resolution, so the framed shot has the display's real 1.5397 aspect. */
+const LAPTOP = { width: 1512, height: 982 };
 /** Clear space shot around the scene, trimmed back to whatever the shadows actually paint. */
 const ROOM = 200;
+/** The composition the two frames are laid out in; the capture crops back to the ink. */
+const SCENE = { width: 1660, height: 940 };
 const SHOTS: Array<[name: string, viewport: { width: number; height: number }]> = [
   ["phone", PHONE],
   ["desktop", DESKTOP],
@@ -36,26 +40,30 @@ for (const [name, viewport] of SHOTS) {
 // The device picture: the two screenshots inside CSS-drawn frames, on a transparent
 // ground so it reads on GitHub's light and dark themes alike. The frames are generic
 // (a notch, a dynamic island, a hinge); no trademarked artwork.
-const asDataUri = async (path: string) =>
-  `data:image/png;base64,${(await readFile(path)).toString("base64")}`;
-const desktopShot = await asDataUri("docs/demo-desktop.png");
-
-// The framed phone gets its own capture. The frame adds a status bar the browser
-// screenshot has no room for, so the shot is taken that much shorter: the band and
-// the shot together then fill a display of exactly 390x844, and nothing is squashed
-// to make it fit. STATUS_BAR is the safe-area inset on the phones that have an island.
-const STATUS_BAR = 59;
-const phoneShot = await (async () => {
-  const page = await browser.newPage({
-    viewport: { width: PHONE.width, height: PHONE.height - STATUS_BAR },
-    deviceScaleFactor: 2,
-  });
+//
+// Each framed device gets its own capture at that device's real display size,
+// rather than reusing a standalone screenshot taken for something else: reusing
+// one means the frame has to stretch it, and a stretched screenshot is what makes
+// a mockup look drawn instead of photographed.
+const shoot = async (viewport: { width: number; height: number }) => {
+  const page = await browser.newPage({ viewport, deviceScaleFactor: 2 });
   await page.goto(url);
   await page.waitForSelector(READY);
   const shot = await page.screenshot();
   await page.close();
   return `data:image/png;base64,${shot.toString("base64")}`;
-})();
+};
+
+// Both frames draw a band across the top that the browser screenshot has no room
+// for, so each shot is taken that much shorter: the band and the shot together
+// then fill the display exactly, and nothing is squashed to make it fit. The two
+// numbers are the real ones — the safe-area inset on phones with an island, and
+// the notch on a 14-inch MacBook Pro, which is 185x32 points at this resolution
+// and sets the menu bar's height.
+const STATUS_BAR = 59;
+const MENU_BAR = 32;
+const laptopShot = await shoot({ width: LAPTOP.width, height: LAPTOP.height - MENU_BAR });
+const phoneShot = await shoot({ width: PHONE.width, height: PHONE.height - STATUS_BAR });
 
 const mockup = `
 <style>
@@ -65,55 +73,76 @@ const mockup = `
     /* The composition. Shadows reach past these bounds; the capture below grows the
        picture to take them in rather than the scene reserving a guessed margin. */
     position: relative;
-    width: 1480px;
-    height: 860px;
+    width: ${SCENE.width}px;
+    height: ${SCENE.height}px;
     margin: var(--room);
     font-size: 0;
   }
   .laptop {
+    /* Proportioned off Apple's own head-on product render of a 14-inch MacBook
+       Pro, measured from the image rather than estimated: against a 787px-wide
+       lid, the base is 955px wide and its front edge is 41px tall. The base is
+       the wider of the two because it is nearer the camera, and that flare is
+       most of what sells the viewing angle. The frame this replaced flared it by
+       1.05x and drew the front edge half as thick as it should be, which is why
+       the perspective read wrong. Every measurement is a fraction of the
+       display's own width, so the frame stays right at any size. */
+    --screen: 1084px;
+    --bezel: calc(var(--screen) * 0.0167); /* 5.05mm beside a 302.5mm-wide display */
+    --crown: calc(var(--screen) * 0.028); /* the strip above it, holding the notch */
+    --chin: calc(var(--screen) * 0.0263); /* the strip below it */
+    --deck: calc(var(--screen) * 0.0538); /* the base's visible front edge */
+    --menu: calc(var(--screen) * 32 / 1512); /* the menu-bar band the notch hangs into */
     position: absolute;
     left: 0;
     top: 40px;
-    width: 1180px;
+    width: calc(var(--screen) * 1.2539);
   }
   .laptop .lid {
     position: relative;
-    margin: 0 30px;
-    padding: 18px 18px 22px;
+    width: var(--screen);
+    margin: 0 auto;
+    padding: var(--crown) var(--bezel) var(--chin);
     background: #1d1d1f;
-    border-radius: 18px 18px 0 0;
+    border-radius: calc(var(--screen) * 0.024) calc(var(--screen) * 0.024) 0 0;
     box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.5);
   }
   .laptop .lid::before {
-    /* the camera notch */
+    /* The notch: 185 x 32 of a 1512-point display. It hangs out of the bezel and
+       down through the menu-bar band below, which is why the band is there. */
     content: "";
     position: absolute;
     left: 50%;
     top: 0;
-    width: 120px;
-    height: 16px;
+    width: calc(var(--screen) * 185 / 1512);
+    height: calc(var(--crown) + var(--menu));
     transform: translateX(-50%);
     background: #1d1d1f;
-    border-radius: 0 0 10px 10px;
+    border-radius: 0 0 calc(var(--menu) * 0.3) calc(var(--menu) * 0.3);
     z-index: 1;
   }
   .laptop .screen {
+    /* The menu bar, to the same scale as the shot below it. */
+    padding-top: var(--menu);
+    background: #f2f4f7;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .laptop .screen img {
     display: block;
     width: 100%;
-    border-radius: 6px;
-    background: #fff;
   }
   .laptop .base {
-    height: 22px;
+    height: var(--deck);
     background: linear-gradient(#b9bcc1, #9a9ea4 60%, #7d8187);
-    border-radius: 0 0 14px 14px;
+    border-radius: 0 0 calc(var(--deck) * 0.5) calc(var(--deck) * 0.5);
   }
   .laptop .base::after {
-    /* the lip that opens the lid */
+    /* The lip that opens the lid: 166px of the reference's 955px-wide base. */
     content: "";
     display: block;
-    width: 160px;
-    height: 6px;
+    width: calc(var(--screen) * 0.218);
+    height: calc(var(--deck) * 0.25);
     margin: 0 auto;
     background: #6f737a;
     border-radius: 0 0 8px 8px;
@@ -165,14 +194,14 @@ const mockup = `
 </style>
 <div class="scene">
   <div class="laptop">
-    <div class="lid"><img class="screen" src="${desktopShot}" alt=""></div>
+    <div class="lid"><div class="screen"><img src="${laptopShot}" alt=""></div></div>
     <div class="base"></div>
   </div>
   <div class="phone"><div class="screen"><img src="${phoneShot}" alt=""></div></div>
 </div>`;
 
 const page = await browser.newPage({
-  viewport: { width: 1480 + 2 * ROOM, height: 860 + 2 * ROOM },
+  viewport: { width: SCENE.width + 2 * ROOM, height: SCENE.height + 2 * ROOM },
   deviceScaleFactor: 2,
 });
 await page.setContent(mockup);
