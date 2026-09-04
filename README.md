@@ -123,7 +123,7 @@ npm test                       # the draft model and the live-feed merge, then t
 npm run check                  # Biome (format, lint) and tsc (types) over web/
 npm run build                  # web/src -> on_the_clock/assets/ (commit the result)
 uv run on-the-clock demo --out docs/index.html
-uv run on-the-clock demo --out out/demo.html && node web/screenshots.mjs
+uv run on-the-clock demo --out out/demo.html && node web/screenshots.ts
                                # refresh the live demo page, then the README images
 ```
 

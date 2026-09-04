@@ -19,6 +19,10 @@ const LAPTOP = { width: 1512, height: 982 };
 const ROOM = 200;
 /** The composition the two frames are laid out in; the capture crops back to the ink. */
 const SCENE = { width: 1660, height: 940 };
+/** The 3D render's ground, so the two README pictures read as one family. */
+const GROUND = "#adc1f8";
+/** Even breathing room around the trimmed scene, as a fraction of its width. */
+const MARGIN = 0.05;
 const SHOTS: Array<[name: string, viewport: { width: number; height: number }]> = [
   ["phone", PHONE],
   ["desktop", DESKTOP],
@@ -37,9 +41,10 @@ for (const [name, viewport] of SHOTS) {
   await page.close();
 }
 
-// The device picture: the two screenshots inside CSS-drawn frames, on a transparent
-// ground so it reads on GitHub's light and dark themes alike. The frames are generic
-// (a notch, a dynamic island, a hinge); no trademarked artwork.
+// The device picture: the two screenshots inside CSS-drawn frames, on the same
+// ground as the 3D render at the top of the README, so the two pictures read as a
+// pair rather than as two unrelated shots. The frames are generic (a notch, a
+// dynamic island, a hinge); no trademarked artwork.
 //
 // Each framed device gets its own capture at that device's real display size,
 // rather than reusing a standalone screenshot taken for something else: reusing
@@ -225,7 +230,7 @@ const wide = await page.screenshot({
 });
 
 const cropped = await page.evaluate(
-  async ([source, inset, scale]) => {
+  async ([source, inset, scale, ground, margin]) => {
     const bitmap = await createImageBitmap(await (await fetch(source)).blob());
     const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
     const context = canvas.getContext("2d");
@@ -256,10 +261,19 @@ const cropped = await page.evaluate(
     right = Math.max(right, bitmap.width - edge - 1);
     bottom = Math.max(bottom, bitmap.height - edge - 1);
 
+    // Lay the trimmed scene on the ground with an even margin all round. The
+    // scene is shot against nothing so the bounds above can be measured from the
+    // alpha channel; drawing it over the fill is what composites the soft shadows
+    // onto the colour, at the strength the renderer gave them.
     const width = right - left + 1;
     const height = bottom - top + 1;
-    const out = new OffscreenCanvas(width, height);
-    out.getContext("2d")?.drawImage(bitmap, -left, -top);
+    const pad = Math.round((width * margin) / scale) * scale; // a whole number of CSS pixels
+    const out = new OffscreenCanvas(width + 2 * pad, height + 2 * pad);
+    const painted = out.getContext("2d");
+    if (!painted) throw new Error("no 2d context");
+    painted.fillStyle = ground;
+    painted.fillRect(0, 0, out.width, out.height);
+    painted.drawImage(bitmap, pad - left, pad - top);
     const blob = await out.convertToBlob({ type: "image/png" });
     const uri: string = await new Promise((resolve) => {
       const reader = new FileReader();
@@ -268,12 +282,12 @@ const cropped = await page.evaluate(
     });
     return {
       uri,
-      width,
-      height,
+      width: out.width,
+      height: out.height,
       trimmed: { left, top, right: bitmap.width - 1 - right, bottom: bitmap.height - 1 - bottom },
     };
   },
-  [`data:image/png;base64,${wide.toString("base64")}`, ROOM, 2] as const,
+  [`data:image/png;base64,${wide.toString("base64")}`, ROOM, 2, GROUND, MARGIN] as const,
 );
 
 await writeFile("docs/demo-devices.png", Buffer.from(cropped.uri.split(",")[1], "base64"));
