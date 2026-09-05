@@ -26,13 +26,16 @@ also follows the live ESPN draft feed, so the board keeps up on its own.
   costs (in projected points) to wait one more round at each position, from Fantasy
   Football Calculator's ADP distribution.
 - **Your calls, layered on top.** A `marks.toml` of targets, fades, news alerts,
-  re-priced projections and a per-league pick script. They show up as chips and a
+  re-priced projections, a per-league pick script, and position windows ("no QB need
+  before pick 78") that keep the assistant on the plan's side of the onesie debate. They show up as chips and a
   plan rail; the math underneath doesn't change.
 - **Phone-first tracker.** The page is self-contained (state in `localStorage`),
   works offline, and stays legible at 390px. Undo, off-board picks, position filters,
   a roster panel.
-- **Live sync.** `on-the-clock serve` polls ESPN's draft detail and pushes picks to
-  the page, including a random draft order the moment it's published.
+- **Live sync.** `on-the-clock serve` joins your ESPN draft room's own socket and
+  pushes each pick to the page the moment it is made, plus a random draft order the
+  moment it's published. ESPN's REST feed hides picks until a draft is over, so the
+  socket is the only live source; joining it from here doesn't disturb your seat.
 - **Pick-slot simulator.** Before the draft order is set, `sim` Monte-Carlos the
   draft from every slot to tell you which one to hope for.
 
@@ -97,7 +100,9 @@ Python does the thinking; the browser draws the board.
 
 - `on_the_clock/` reads ESPN, computes VOR and the cost of waiting, and renders one
   self-contained HTML page: the shell, the stylesheet, a 32-image team-mark sheet, the
-  data as `window.ON_THE_CLOCK`, and the bundle that renders it.
+  data as `window.ON_THE_CLOCK`, and the bundle that renders it. `room.py` speaks the
+  draft room's socket protocol (an `INIT` state blob, then one `SELECTED` frame per pick)
+  and `serve.py` merges it with the REST feed.
 - `web/src/` is a Preact app in TypeScript, one component per piece of the page with
   its own CSS module beside it: `app/` (masthead, league tabs, footer), `league/` (the draft room,
   the plan rail, the pre-draft tables, and the hooks that own state), `assistant/`

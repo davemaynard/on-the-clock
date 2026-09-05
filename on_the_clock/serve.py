@@ -16,8 +16,13 @@ Manual tapping still works and still wins: the sync only ever *adds* picks it
 sees. That matters for the offline league, where ESPN only knows what the
 commissioner has typed in, and may know it late or not at all.
 
-Standard library only, on purpose: one user, a handful of endpoints, and nothing
-new to install the night before a draft.
+Where the picks come from: ESPN's REST feed lists every pick with player -1
+until the draft is over, so while a draft is in progress the feed joins the
+draft room's own socket (room.py) and reads picks from there, the moment they
+are made. The REST side still supplies the draft order and the done flag.
+
+Standard library plus httpx and websockets, on purpose: one user, a handful of
+endpoints, and nothing else to install the night before a draft.
 """
 
 from __future__ import annotations
@@ -36,7 +41,7 @@ from urllib.parse import parse_qs, urlparse
 
 import httpx
 
-from . import config, page
+from . import config, page, room
 
 HOST = "https://lm-api-reads.fantasy.espn.com"
 POLL_TTL = 4.0  # seconds; ESPN is not ours to hammer
@@ -52,11 +57,33 @@ def is_real_pick(player_id: int) -> bool:
 class DraftFeed:
     """Cached read of one league's live draft, shared across requests."""
 
-    def __init__(self, cookies: dict, year: int) -> None:
+    def __init__(self, cookies: dict, year: int, teams: dict[str, int] | None = None) -> None:
         self.cookies = cookies
         self.year = year
+        # league id -> your team id, from the page build; needed to join a draft room.
+        self.teams = teams or {}
+        self.rooms: dict[str, room.Room] = {}
         self._cache: dict[str, tuple[float, dict]] = {}
         self._lock = threading.Lock()
+
+    def _room(self, league_id: str) -> room.Room | None:
+        """The league's draft room, started on first use. None without a team id."""
+        team_id = self.teams.get(league_id)
+        if not team_id:
+            return None
+        with self._lock:
+            live = self.rooms.get(league_id)
+            if live is None:
+                live = room.Room(self.cookies, self.year, league_id, team_id)
+                live.start()
+                self.rooms[league_id] = live
+            return live
+
+    def _close_room(self, league_id: str) -> None:
+        with self._lock:
+            live = self.rooms.pop(league_id, None)
+        if live:
+            live.close()
 
     def get(self, league_id: str) -> dict:
         now = time.monotonic()
@@ -103,15 +130,32 @@ class DraftFeed:
                 order_final = False
             if order == list(range(1, len(order) + 1)):
                 order_final = False
-        return {
+        in_progress = bool(detail.get("inProgress"))
+        drafted = bool(detail.get("drafted"))
+        result = {
             "ok": True,
-            "inProgress": bool(detail.get("inProgress")),
-            "drafted": bool(detail.get("drafted")),
+            "inProgress": in_progress,
+            "drafted": drafted,
             "picks": picks,
             "pickOrder": order,
             "orderFinal": order_final,
             "onClock": (max((p["overall"] for p in picks), default=0) + 1),
+            "source": "rest",
         }
+        if drafted:
+            self._close_room(league_id)
+        elif in_progress and (live := self._room(league_id)) is not None:
+            seen = live.snapshot()
+            if seen["picks"]:
+                # The room is the truth mid-draft; anything REST does know is kept.
+                merged = {p["overall"]: p for p in picks}
+                merged.update({p["overall"]: p for p in seen["picks"]})
+                result["picks"] = [merged[k] for k in sorted(merged)]
+                result["onClock"] = seen["onClock"] or (max(merged) + 1)
+            result["source"] = f"room:{seen['state']}"
+            if seen["error"]:
+                result["roomError"] = seen["error"]
+        return result
 
 
 # Static pages served alongside the draft room: any .html in out/ is reachable
@@ -203,9 +247,10 @@ def main(argv: list[str] | None = None) -> None:
     cookies = config.require_cookies()
 
     print("building board from ESPN…", flush=True)
-    html, _ = page.build_page(args.year, cookies, live=True)
+    html, leagues = page.build_page(args.year, cookies, live=True)
     body = html.encode("utf-8")
-    feed = DraftFeed(cookies, args.year)
+    my_teams = {d["league_id"]: d["team"] for d in leagues if d.get("team")}
+    feed = DraftFeed(cookies, args.year, my_teams)
 
     httpd = ThreadingHTTPServer((args.host, args.port), make_handler(body, feed))
     httpd.daemon_threads = True
