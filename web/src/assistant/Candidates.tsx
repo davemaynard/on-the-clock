@@ -40,7 +40,11 @@ export function Candidates({ draft, players, score, fitMode, onToggleFit, dispat
           // biome-ignore lint/a11y/useKeyWithClickEvents: the name button inside carries the keyboard contract
           <li
             key={index}
-            class={cx(styles.candidate, likelihood)}
+            class={cx(
+              styles.candidate,
+              likelihood,
+              draft.recommended.has(index) && styles.recommended,
+            )}
             title={player.why || undefined}
             onClick={(event) => onClick(event, index)}
           >
@@ -56,6 +60,7 @@ export function Candidates({ draft, players, score, fitMode, onToggleFit, dispat
             <span class={styles.chance}>{Math.round(chance * 100)}%</span>
             <PlayerName
               player={player}
+              className={styles.player}
               detail={
                 <span class={styles.posRank}>
                   {player.pos}

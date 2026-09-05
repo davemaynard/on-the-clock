@@ -49,6 +49,23 @@
   opacity: 0.16;
 }
 
+/* The same green rail the board gives its three best fits, so the two lists agree. */
+.recommended {
+  box-shadow: inset 3px 0 0 var(--good);
+}
+
+/* The name cell is a grid track, so the name must give way to his rank and tags rather
+ * than run under them. Centered, not baseline-aligned, so clipping the button is safe
+ * here (see PlayerName.module.css for why the board row can't). */
+.player {
+  align-items: center;
+}
+
+.player > button {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .chance {
   font-family: var(--font-mono);
   font-size: 0.78rem;
@@ -57,7 +74,24 @@
   color: var(--muted);
 }
 
-.unlikely .chance {
+.unlikely /* The same green rail the board gives its three best fits, so the two lists agree. */
+.recommended {
+  box-shadow: inset 3px 0 0 var(--good);
+}
+
+/* The name cell is a grid track, so the name must give way to his rank and tags rather
+ * than run under them. Centered, not baseline-aligned, so clipping the button is safe
+ * here (see PlayerName.module.css for why the board row can't). */
+.player {
+  align-items: center;
+}
+
+.player > button {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chance {
   color: var(--urgent);
 }
 
