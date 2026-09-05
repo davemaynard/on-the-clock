@@ -225,7 +225,10 @@ describe("windows and surplus", () => {
     const wr = player("WR Three", "WR", 20, 10);
     const more = [...players, te, wr];
     const again = assess(withTE, more, state);
-    assert.ok(again.fit(more.indexOf(te)) < again.fit(more.indexOf(wr)), "same VOR, the WR fits better");
+    assert.ok(
+      again.fit(more.indexOf(te)) < again.fit(more.indexOf(wr)),
+      "same VOR, the WR fits better",
+    );
     assert.equal(draft.open.TE, 0);
   });
   test("a third onesie has no path to the lineup and sits below any RB or WR", () => {
@@ -236,6 +239,9 @@ describe("windows and surplus", () => {
     const more = [...players, backup, third, bench];
     const state: DraftState = { drafted: new Set([5, 9]), mine: new Set([5, 9]), offBoard: 0 };
     const draft = assess(withTE, more, state);
-    assert.ok(draft.fit(more.indexOf(third)) < draft.fit(more.indexOf(bench)), "a -30 WR beats a +25 third TE");
+    assert.ok(
+      draft.fit(more.indexOf(third)) < draft.fit(more.indexOf(bench)),
+      "a -30 WR beats a +25 third TE",
+    );
   });
 });

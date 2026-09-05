@@ -39,5 +39,8 @@ for adv, n in Counter(r[2] for r in rows if r[1] == "19").most_common(5):
 print("\nTight ends per roster:")
 for k, n in sorted(Counter(r.count("TE ") for r in rosters).items()):
     print(f"  {k} TEs: {n} rooms")
-qb_early = sum(1 for r in rows if int(r[1]) < 78 and r[3].split(' / ')[0] in ('Josh Allen', 'Jalen Hurts', 'Jayden Daniels', 'Lamar Jackson', 'Joe Burrow'))
+EARLY_QBS = {"Josh Allen", "Jalen Hurts", "Jayden Daniels", "Lamar Jackson", "Joe Burrow"}
+qb_early = sum(
+    1 for r in rows if int(r[1]) < 78 and r[3].split(" / ")[0] in EARLY_QBS
+)
 print(f"\nQB proposed first before pick 78: {qb_early} of {len(rosters)} rooms")
