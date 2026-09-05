@@ -28,6 +28,8 @@ text the plan rail shows verbatim.
     [leagues.123456]
     principles = ["Ten teams means replacement is fat: RB/WR through round 8."]
     script = [["1", 6, "Best RB standing; tiebreak to the WR."]]
+    [leagues.123456.windows]
+    QB = 78    # no QB need before pick 78: the position comes free later
     [leagues.123456.targets]
     "Other Player" = "R1 anchor: the VOR gap to the next RB is the round"
     [leagues.123456.fades]
@@ -72,6 +74,14 @@ def _league(league_id: str, path: Path | None) -> dict:
 
 def principles(league_id: str, path: Path | None = None) -> list[str]:
     return list(_league(league_id, path).get("principles", []))
+
+
+def windows(league_id: str, path: Path | None = None) -> dict[str, int]:
+    """Position -> the overall pick before which the board should not push that
+    position as a need. `[leagues.X.windows] QB = 78` says: until pick 78 an empty
+    QB slot earns no need bonus and never leads the advice line, because the plan
+    says the position comes free later. Value alone can still surface a player."""
+    return {pos: int(pick) for pos, pick in _league(league_id, path).get("windows", {}).items()}
 
 
 def script(league_id: str, path: Path | None = None) -> list[tuple[str, int, str]]:

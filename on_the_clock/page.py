@@ -154,6 +154,7 @@ def assemble(cfg: dict, league: dict, entries: list[dict], year: int,
         "picks": picks, "curve": curve, "rounds": rounds, "hurt": hurt,
         "principles": marks.principles(cfg["id"], marks_path),
         "script": marks.script(cfg["id"], marks_path),
+        "windows": marks.windows(cfg["id"], marks_path),
         "levels": levels, "taken": detail["starters_taken"],
         "bench": slot_counts.get("20", 0),
     }
@@ -224,6 +225,7 @@ def league_payload(d: dict, idx: int) -> dict:
         + [{"count": f["count"], "label": f["label"]} for f in d["families"]],
         "principles": d["principles"],
         "script": [{"round": r, "pick": pk, "text": txt} for r, pk, txt in d["script"]],
+        "windows": d["windows"],
         # Value of the best player left at each position at each of the first eight
         # picks, from the pre-draft simulation; empty until the slot is known.
         "curve": [

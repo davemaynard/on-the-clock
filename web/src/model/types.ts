@@ -92,6 +92,8 @@ export interface League {
   lineup: LineupItem[];
   principles: string[];
   script: ScriptStep[];
+  /** Position -> overall pick before which an open slot there is not a need. */
+  windows: Partial<Record<Position, number>>;
   curve: CurveRow[];
   hurt: HurtPlayer[];
   players: Player[];

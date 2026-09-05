@@ -98,7 +98,9 @@ describe("roster need", () => {
     assert.deepEqual(familyOpen, [0], "the second RB fills the FLEX");
   });
   test("the assessment ranks by fit and recommends the top three", () => {
-    const draft = assess(league, players, fresh());
+    const stub = player("Ghost", "WR", 0, 999, { stub: true });
+    const draft = assess(league, [...players, stub], fresh());
+    assert.ok(!draft.ranked.includes(players.length), "a stub row is never a candidate");
     assert.equal(draft.next, 3);
     assert.equal(draft.picksAway, 2);
     assert.equal(draft.recommended.size, 3);
@@ -202,5 +204,38 @@ describe("rescue code", () => {
     assert.deepEqual([...back.mine], [3]);
     assert.equal(back.offBoard, 2);
     assert.deepEqual(decodeState("!!~??~"), { drafted: new Set(), mine: new Set(), offBoard: 0 });
+  });
+});
+
+describe("windows and surplus", () => {
+  // A longer draft so the lineup is never forced by the pick count.
+  const roomy = { ...league, picks: snakePicks(3, 4, 9) };
+  test("a closed window keeps an open slot out of the need bonus and the advice", () => {
+    const windowed = { ...roomy, windows: { QB: 20 } };
+    const plain = assess(roomy, players, fresh());
+    const draft = assess(windowed, players, fresh());
+    assert.ok(draft.fit(0) < plain.fit(0), "the QB loses his need bonus before pick 20");
+    assert.doesNotMatch(adviceText(advice(windowed, draft)), /Optimize for QB/);
+  });
+  test("a second onesie is bench, not a starter: marked down instead of earning flex", () => {
+    const state: DraftState = { drafted: new Set([5]), mine: new Set([5]), offBoard: 0 };
+    const withTE = { ...roomy, slots: { ...roomy.slots, TE: 1 } };
+    const draft = assess(withTE, players, state);
+    const te = player("TE Two", "TE", 20, 9);
+    const wr = player("WR Three", "WR", 20, 10);
+    const more = [...players, te, wr];
+    const again = assess(withTE, more, state);
+    assert.ok(again.fit(more.indexOf(te)) < again.fit(more.indexOf(wr)), "same VOR, the WR fits better");
+    assert.equal(draft.open.TE, 0);
+  });
+  test("a third onesie has no path to the lineup and sits below any RB or WR", () => {
+    const withTE = { ...roomy, slots: { ...roomy.slots, TE: 1 } };
+    const backup = player("TE Two", "TE", 20, 9);
+    const third = player("TE Three", "TE", 25, 10);
+    const bench = player("WR Bench", "WR", -30, 11);
+    const more = [...players, backup, third, bench];
+    const state: DraftState = { drafted: new Set([5, 9]), mine: new Set([5, 9]), offBoard: 0 };
+    const draft = assess(withTE, more, state);
+    assert.ok(draft.fit(more.indexOf(third)) < draft.fit(more.indexOf(bench)), "a -30 WR beats a +25 third TE");
   });
 });

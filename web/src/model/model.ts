@@ -12,6 +12,11 @@ export interface DraftLeague {
   picks: number[];
   slots: SlotCounts;
   families: FlexFamily[];
+  /**
+   * Position -> the overall pick before which an open slot there earns no need bonus
+   * and never leads the advice: the plan says the position comes free later.
+   */
+  windows?: Partial<Record<Position, number>>;
   /** Picks ESPN reports spent on players beyond the board, merged with the manual count. */
   feedOffBoard?: number;
   /** ESPN says the draft is over. */
@@ -188,6 +193,11 @@ export function assess(league: DraftLeague, players: Player[], state: DraftState
   const available = players.map((_, i) => i).filter((i) => !state.drafted.has(i));
   const queue = marketQueue(players, state.drafted);
   const { open, familyOpen, families } = openSlots(league, players, state.mine);
+  const owned = zeroByPosition();
+  for (const index of state.mine) owned[players[index].pos]++;
+  /** The plan says this position comes free later: not a need yet. */
+  const windowClosed = (pos: Position): boolean =>
+    !forced && next !== null && next < (league.windows?.[pos] ?? 0);
   const costs = waitCosts({
     players,
     drafted: state.drafted,
@@ -215,8 +225,20 @@ export function assess(league: DraftLeague, players: Player[], state: DraftState
   const exhausted = (pos: Position): boolean =>
     !open[pos] && !families.some((family, k) => familyOpen[k] > 0 && family.eligible.includes(pos));
 
+  // A onesie (one starting slot: QB, TE) already filled is bench depth, and a second
+  // one rarely starts even through a flex, where a WR with the same VOR scores more.
+  // So the backup never earns the flex cost and is marked down, and a third body has
+  // no path to the lineup at all: VOR is measured against the position's own
+  // replacement level, which says nothing about a player who can never start, so he
+  // is priced below any RB or WR. RB/WR surplus stays at zero: that is what a bench
+  // is for.
+  const onesieSurplus = (pos: Position): number =>
+    league.slots[pos] === 1 && open[pos] === 0 ? owned[pos] - league.slots[pos] + 1 : 0;
   const bonus = (pos: Position): number => {
+    if (windowClosed(pos)) return -25;
     if (open[pos] > 0) return forced ? 99 : costs.byPosition[pos];
+    if (onesieSurplus(pos) === 1) return -15;
+    if (onesieSurplus(pos) > 1) return -100;
     for (let k = 0; k < families.length; k++) {
       if (familyOpen[k] > 0 && families[k].eligible.includes(pos)) {
         return forced ? 60 : costs.byFamily[k];
@@ -236,7 +258,9 @@ export function assess(league: DraftLeague, players: Player[], state: DraftState
     .filter((i) => {
       const p = players[i];
       const wanted = endgame ? p.streamer && open[p.pos] > 0 : !p.streamer;
-      return wanted && (!p.out || p.mark === "slp");
+      // A stub is a marked name ESPN carries without a projection: its numbers are
+      // placeholders, so it is shown for its chip and never proposed.
+      return wanted && !p.stub && (!p.out || p.mark === "slp");
     })
     .sort((a, b) => fit(b) - fit(a));
 
@@ -258,6 +282,7 @@ export function assess(league: DraftLeague, players: Player[], state: DraftState
     streamersNeeded,
     openSkill,
     exhausted,
+    windowClosed,
     fit,
     ranked,
     /** The three best fits get a green rail; in endgame exactly one. */
@@ -283,7 +308,7 @@ export interface Advice {
 export function advice(league: DraftLeague, assessment: Assessment): Advice | null {
   const { next, following, endgame, forced, open, picksLeft, streamersNeeded, openSkill } =
     assessment;
-  const { familyOpen, families, flexOpen, costs } = assessment;
+  const { familyOpen, families, flexOpen, costs, windowClosed } = assessment;
   const say = (before: string, focus: string, after = ""): Advice => ({ before, focus, after });
   if (!league.picks.length) {
     return say(
@@ -295,7 +320,7 @@ export function advice(league: DraftLeague, assessment: Assessment): Advice | nu
   if (next === null) return null;
   if (endgame) return say("Optimize for ", "K / D/ST", ": last picks");
 
-  const starters = SKILL_POSITIONS.filter((pos) => open[pos] > 0);
+  const starters = SKILL_POSITIONS.filter((pos) => open[pos] > 0 && !windowClosed(pos));
   // Can go to zero or below once the K and D/ST picks are spoken for and a starting
   // slot is still empty: say so rather than printing "0 picks".
   const skillPicksLeft = picksLeft - streamersNeeded;

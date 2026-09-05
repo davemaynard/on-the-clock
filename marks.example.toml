@@ -25,6 +25,12 @@ script = [
   ["2", 15, "The position you didn't take in round 1."],
 ]
 
+# Positions the plan says come free later: before that overall pick an empty slot
+# there earns no need bonus and never leads the advice line.
+[leagues.123456.windows]
+QB = 78
+TE = 43
+
 [leagues.123456.targets]
 "Some Wide Receiver" = "49% of his team's targets vacated; priced two rounds late"
 
